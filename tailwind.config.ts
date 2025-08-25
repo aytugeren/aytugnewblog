@@ -5,8 +5,19 @@ import typography from "@tailwindcss/typography"; // opsiyonel ama blog için g�
 const config: Config = {
   // v4'te tuple şeklinde yazılır:
   darkMode: ["class", ".dark"],
-  theme: { extend: {} },
-  // v4'te content alanı gerekmiyor, çıkarabiliriz
+theme: {
+  extend: {
+    keyframes: {
+      fade: {
+        "0%,100%": { opacity: 0 },
+        "20%,80%": { opacity: 1 },
+      },
+    },
+  animation: {
+    pulse: "pulse 1s step-start infinite",
+  },
+  },
+},
   plugins: [typography],
 };
 

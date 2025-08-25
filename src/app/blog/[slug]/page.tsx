@@ -22,10 +22,24 @@ export default async function PostPage(
   const post = allPosts.find(p => p.slug === slug);
   if (!post) return notFound();
 
-  const publishedAt = new Date(post.date);
-  const formatted = publishedAt.toLocaleDateString("tr-TR", {
-    year: "numeric", month: "long", day: "numeric",
-  });
+// post bulunduğu yerde, formatlamadan hemen önce ekle:
+function normalizePostDate(input: unknown): Date | null {
+  if (!input) return null;
+  // 1) Date nesnesi geldiyse
+  if (input instanceof Date && !isNaN(input.valueOf())) return input;
+  // 2) String geldiyse: \r temizle, sadece YYYY-MM-DD al
+  if (typeof input === "string") {
+    const iso = input.replace(/\r/g, "").trim();         // "2025-08-25"
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;    // beklenen format değilse geçersiz
+    return new Date(`${iso}T00:00:00Z`);                  // UTC'ye sabitle
+  }
+  return null;
+}
+
+const publishedAt = normalizePostDate((post as any).date);
+const formatted = publishedAt
+  ? new Intl.DateTimeFormat("tr-TR", { dateStyle: "long", timeZone: "UTC" }).format(publishedAt)
+  : "Tarih yok";
 
   return (
     <>
