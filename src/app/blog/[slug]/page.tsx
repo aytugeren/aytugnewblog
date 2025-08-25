@@ -2,7 +2,6 @@ import { allPosts } from "contentlayer/generated"; // gerekirse ".contentlayer/g
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { SiteNavbar } from "../../components/site-navbar";
-import { Mdx } from "../../components/mdx";
 
 // build-time: hangi slug'lar üretilecek?
 export async function generateStaticParams() {
@@ -26,7 +25,8 @@ export default function PostPage({ params }: { params: { slug: string } }) {
       <article className="prose mx-auto max-w-3xl px-4 py-12">
         <h1>{post.title}</h1>
         {/* tarih / etiketler istersen burada */}
-        <Mdx code={post.body.code} />
+        {/* MDX içeriği düz metin olarak gösteriliyor */}
+        <div className="whitespace-pre-wrap">{post.body.raw}</div>
       </article>
     </>
   );
