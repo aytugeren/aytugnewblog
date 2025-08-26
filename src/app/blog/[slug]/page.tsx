@@ -36,10 +36,11 @@ function normalizePostDate(input: unknown): Date | null {
   return null;
 }
 
-const publishedAt = normalizePostDate((post as any).date);
+const publishedAt = normalizePostDate(post.date);
 const formatted = publishedAt
   ? new Intl.DateTimeFormat("tr-TR", { dateStyle: "long", timeZone: "UTC" }).format(publishedAt)
   : "Tarih yok";
+const tags = post.tags ?? [];
 
   return (
     <>
@@ -49,8 +50,13 @@ const formatted = publishedAt
           <h1 className="mb-2">{post.title}</h1>
           <div className="text-sm text-gray-500">
             {formatted}
-            {post.tags?.length ? (
-              <>{" · "}{post.tags.map((t,i)=><span key={t}>#{t}{i<post.tags.length-1?", ":null}</span>)}</>
+            {tags.length ? (
+              <>
+                {" · "}
+                {tags.map((t, i) => (
+                  <span key={t}>#{t}{i < tags.length - 1 ? ", " : null}</span>
+                ))}
+              </>
             ) : null}
           </div>
           {post.summary ? <p className="mt-2 text-gray-600">{post.summary}</p> : null}
