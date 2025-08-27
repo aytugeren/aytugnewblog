@@ -1,4 +1,5 @@
 using MongoDB.Driver;
+using MongoDB.Bson;
 
 var builder = WebApplication.CreateBuilder(args);
 var mongoConn = Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING") ?? "mongodb://localhost:27017";
@@ -18,6 +19,10 @@ app.MapGet("/api/home", (IMongoDatabase db) =>
 app.MapPost("/api/home", (IMongoDatabase db, HomeData data) =>
 {
     var col = db.GetCollection<HomeData>("home");
+    if (data.Id == ObjectId.Empty)
+    {
+        data.Id = ObjectId.GenerateNewId();
+    }
     col.InsertOne(data);
     return Results.Created($"/api/home/{data.Id}", data);
 });
