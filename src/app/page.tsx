@@ -1,9 +1,6 @@
-import fs from "fs";
-import path from "path";
 import Image from "next/image";
 import Link from "next/link";
 import { Github, Linkedin, Twitter } from "lucide-react";
-import { allPosts } from "contentlayer/generated";
 import { SiteNavbar } from "./components/site-navbar";
 import { Section } from "@/components/section";
 import { SkillBadge } from "@/components/skill-badge";
@@ -11,100 +8,11 @@ import { TimelineItem } from "@/components/timeline-item";
 import { ProjectCard } from "@/components/project-card";
 import { PostListItem } from "@/components/post-list-item";
 
-export default function HomePage() {
-  const posts = allPosts
-    .filter((p) => p.published !== false)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 3);
-
-  const hasCV = fs.existsSync(path.join(process.cwd(), "public", "cv.pdf"));
-
-  const highlights = [
-    "10+ yıl tecrübe",
-    ".NET 9 + Next.js",
-    "Elasticsearch & PostgreSQL",
-    "Bulut & CI/CD",
-  ];
-
-  const skills = {
-    Backend: [
-      { name: ".NET", level: "İleri" },
-      { name: "EF Core", level: "İleri" },
-      { name: "PostgreSQL", level: "İleri" },
-      { name: "Redis", level: "Orta" },
-    ],
-    Frontend: [
-      { name: "Next.js", level: "İleri" },
-      { name: "TypeScript", level: "İleri" },
-      { name: "Tailwind", level: "İleri" },
-      { name: "shadcn/ui", level: "Orta" },
-    ],
-    DevOps: [
-      { name: "Docker", level: "İleri" },
-      { name: "GitHub Actions", level: "İleri" },
-      { name: "Vercel", level: "İleri" },
-      { name: "Fly.io", level: "Orta" },
-    ],
-    "Data/Search": [
-      { name: "Elasticsearch", level: "İleri" },
-      { name: "Kibana", level: "Orta" },
-    ],
-  } as const;
-
-  const experiences = [
-    {
-      company: "Acme Corp",
-      role: "Senior Engineer",
-      period: "2021 – Günümüz",
-      achievements: [
-        "Mikroservis mimarisiyle ölçeklenebilir API'ler tasarladım.",
-        "%40 performans artışı sağlayan cache stratejileri geliştirdim.",
-        "Takım mentörlüğü ve code review süreçlerini yönettim.",
-      ],
-    },
-    {
-      company: "Globex",
-      role: "Fullstack Developer",
-      period: "2018 – 2021",
-      achievements: [
-        "React ve .NET ile kurumsal dashboard geliştirdim.",
-        "CI/CD pipeline'ları kurarak deploy süresini %60 azalttım.",
-      ],
-    },
-    {
-      company: "Initech",
-      role: "Software Engineer",
-      period: "2014 – 2018",
-      achievements: [
-        "Monolitik sistemi servis tabanlı mimariye taşıdım.",
-        "Elasticsearch arama deneyimini optimize ettim.",
-      ],
-    },
-  ];
-
-  const projects = [
-    {
-      title: "Realtime Analytics",
-      summary:
-        "Gerçek zamanlı veri işleyen ve dashboard sunan SaaS platformu.",
-      tags: ["Next.js", "Elasticsearch", "Redis"],
-      href: "/projects/realtime-analytics",
-    },
-    {
-      title: "E-commerce Core",
-      summary:
-        "Ölçeklenebilir .NET 9 tabanlı e-ticaret çekirdek kütüphanesi.",
-      tags: [".NET", "PostgreSQL", "Docker"],
-      href: "/projects/ecommerce-core",
-    },
-    {
-      title: "Team Productivity",
-      summary:
-        "Takımlar için görev ve zaman yönetimi sağlayan web uygulaması.",
-      tags: ["Next.js", "TypeScript", "Vercel"],
-      href: "/projects/team-productivity",
-    },
-  ];
+export default async function HomePage() {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+  const res = await fetch(`${apiUrl}/api/home`, { cache: "no-store" });
+  const { highlights, skills, experiences, projects, posts, hasCv } =
+    await res.json();
 
   return (
     <>
@@ -139,7 +47,7 @@ export default function HomePage() {
                   >
                     Projeler
                   </Link>
-                  {hasCV ? (
+                    {hasCv ? (
                     <a
                       href="/cv.pdf"
                       download
