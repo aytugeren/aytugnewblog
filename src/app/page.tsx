@@ -10,13 +10,60 @@ import { PostListItem } from "@/components/post-list-item";
 
 export default async function HomePage() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
-  const res = await fetch(`${apiUrl}/api/home`, { cache: "no-store" });
-  const { highlights, skills, experiences, projects, posts, hasCv } =
-    await res.json();
+  let errorMessage: string | null = null;
+  type Experience = {
+    company: string;
+    role: string;
+    period: string;
+    achievements: string[];
+  };
+  type Project = {
+    title: string;
+    summary: string;
+    tags: string[];
+    href: string;
+  };
+  type Post = {
+    title: string;
+    date: string;
+    summary: string;
+    slug: string;
+  };
+
+  let data: {
+    highlights: string[];
+    skills: Record<string, { name: string; level: string }[]>;
+    experiences: Experience[];
+    projects: Project[];
+    posts: Post[];
+    hasCv: boolean;
+  } = {
+    highlights: [],
+    skills: {},
+    experiences: [],
+    projects: [],
+    posts: [],
+    hasCv: false,
+  };
+
+  try {
+    const res = await fetch(`${apiUrl}/api/home`, { cache: "no-store" });
+    data = await res.json();
+  } catch (error) {
+    console.error("Failed to fetch home data", error);
+    errorMessage = "Failed to load data. Showing default content.";
+  }
+
+  const { highlights, skills, experiences, projects, posts, hasCv } = data;
 
   return (
     <>
       <SiteNavbar />
+      {errorMessage && (
+        <p className="mx-auto max-w-6xl rounded-md bg-destructive/10 px-4 py-2 text-center text-sm text-destructive">
+          {errorMessage}
+        </p>
+      )}
       <div className="relative">
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-background/80 to-transparent"
