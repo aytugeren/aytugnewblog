@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json.schemastore.org/launch.json",
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Backend",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build backend",
+      "program": "${workspaceFolder}/backend/bin/Debug/net9.0/backend.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/backend",
+      "stopAtEntry": false,
+      "console": "integratedTerminal",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5000"
+        // Optionally set DB envs if needed:
+        // "MONGO_CONNECTION_STRING": "mongodb://localhost:27017",
+        // "MONGO_DB_NAME": "aytugdb"
+      },
+      "justMyCode": true
+    }
+  ]
+}
+

@@ -27,3 +27,9 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+/* SkillBar animations */
+@keyframes sb-fill { from { width: 0 } to { width: var(--p) } }
+@keyframes sb-shimmer { from { transform: translateX(-100%) } to { transform: translateX(100%) } }
+.skillbar-fill { transition: width 500ms cubic-bezier(.22,.9,.24,1), filter 200ms ease; animation: sb-fill 700ms cubic-bezier(.22,.9,.24,1); }
+.skillbar-shine::after { content: ""; position: absolute; inset: 0; background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%); transform: translateX(-100%); animation: sb-shimmer 2.2s ease-in-out infinite; mix-blend-mode: overlay; }
+@media (prefers-reduced-motion: reduce) { .skillbar-fill { animation: none; transition: none } .skillbar-shine::after { animation: none } }

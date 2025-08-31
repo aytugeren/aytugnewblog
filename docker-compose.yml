@@ -14,7 +14,10 @@ services:
     environment:
       MONGO_CONNECTION_STRING: mongodb://mongo:27017
       MONGO_DB_NAME: aytugdb
+      CONTENT_DIR: /app/content/posts
     depends_on:
       - mongo
+    volumes:
+      - ./content:/app/content
 volumes:
   mongo-data:

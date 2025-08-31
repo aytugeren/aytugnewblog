@@ -24,3 +24,4 @@ export function TimelineItem({ company, role, period, achievements }: TimelineIt
     </li>
   );
 }
+

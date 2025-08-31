@@ -5,6 +5,7 @@ interface Post {
   date: string;
   summary: string;
   slug: string;
+  tags?: string[];
 }
 
 export function PostListItem({ post }: { post: Post }) {
@@ -22,6 +23,18 @@ export function PostListItem({ post }: { post: Post }) {
       </h3>
       <time className="block text-sm text-muted-foreground">{formatted}</time>
       <p className="text-sm text-muted-foreground leading-relaxed">{post.summary}</p>
+      {post.tags?.length ? (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {post.tags.map((t) => (
+            <span
+              key={t}
+              className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary"
+            >
+              #{t}
+            </span>
+          ))}
+        </div>
+      ) : null}
     </article>
   );
 }

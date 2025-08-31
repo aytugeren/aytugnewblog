@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
-import { CodeBackground } from "./components/codebackground";
+import { VisitTracker } from "@/components/visit-tracker";
+import { ProjectIframeModal } from "@/components/project-iframe-modal";
 
 export const metadata: Metadata = {
   title: "Aytuğ — Blog",
@@ -21,11 +22,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta charSet="utf-8" />
       </head>
-      <body className="min-h-dvh bg-background text-foreground antialiased">
+      <body suppressHydrationWarning className="min-h-dvh bg-background text-foreground antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-           <CodeBackground /> 
-          {children}
-        </ThemeProvider>
+           <VisitTracker />
+           {children}
+           {/* Global project iframe modal */}
+           <ProjectIframeModal />
+         </ThemeProvider>
       </body>
     </html>
   );
