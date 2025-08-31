@@ -43,7 +43,7 @@ export default function AdminPostsPage() {
             </div>
             <div className="flex items-center gap-2 text-sm">
               <a className="underline" href={`/blog/${p.slug}`} target="_blank">Görüntüle</a>
-              <a className="underline" href={`/admin/posts/${p.id}/edit`}>Düzenle</a>
+              <a className="underline" href={`/admin/posts/${p.slug}/edit`}>Düzenle</a>
             </div>
           </div>
         ))}
@@ -54,4 +54,3 @@ export default function AdminPostsPage() {
     </div>
   )
 }
-

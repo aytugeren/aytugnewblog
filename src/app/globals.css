@@ -27,6 +27,9 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+/* TipTap selection + image rendering helpers */
+.ProseMirror img { max-width: 100%; height: auto; }
+.ProseMirror img.ProseMirror-selectednode { outline: 2px solid #3b82f6; outline-offset: 2px; box-shadow: 0 0 0 2px rgba(59,130,246,0.25); }
 /* SkillBar animations */
 @keyframes sb-fill { from { width: 0 } to { width: var(--p) } }
 @keyframes sb-shimmer { from { transform: translateX(-100%) } to { transform: translateX(100%) } }

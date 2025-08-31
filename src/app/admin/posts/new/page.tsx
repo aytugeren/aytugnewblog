@@ -1,7 +1,7 @@
 "use client"
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { RichTextEditor } from '@/components/rich-text'
+import { MediumEditor } from '@/components/medium-editor'
 
 function getToken(): string | null {
   const m = document.cookie.match(/(?:^|; )token=([^;]+)/)
@@ -116,9 +116,8 @@ export default function NewPostPage() {
             Yayınla
           </label>
         </div>
-        <RichTextEditor value={body} onChange={setBody} minHeight={300} />
+        <MediumEditor value={body} onChange={setBody} minHeight={360} />
       </div>
     </form>
   )
 }
-

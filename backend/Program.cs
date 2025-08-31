@@ -185,6 +185,52 @@ app.MapPost("/api/upload/cv", async ([FromServices] IMongoDatabase db, HttpReque
     return Results.Ok(new { saved = true, path = targetPath, hasCv = true });
 }).RequireAuthorization();
 
+// Upload blog images; returns public URL
+app.MapPost("/api/upload/image", async (HttpRequest request) =>
+{
+    if (!request.HasFormContentType)
+    {
+        return Results.BadRequest("multipart/form-data expected");
+    }
+    var form = await request.ReadFormAsync();
+    var file = form.Files.GetFile("file");
+    if (file is null || file.Length == 0)
+    {
+        return Results.BadRequest("file is required");
+    }
+    // simple content-type guard
+    if (!file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+    {
+        return Results.BadRequest("only image files allowed");
+    }
+
+    var uploadsDirEnv = Environment.GetEnvironmentVariable("UPLOADS_DIR");
+    string publicDir;
+    if (!string.IsNullOrWhiteSpace(uploadsDirEnv))
+    {
+        publicDir = uploadsDirEnv;
+    }
+    else
+    {
+        publicDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../public/uploads"));
+    }
+    Directory.CreateDirectory(publicDir);
+
+    var ext = Path.GetExtension(file.FileName);
+    if (string.IsNullOrWhiteSpace(ext)) ext = ".bin";
+    var safeExt = new string(ext.Where(ch => char.IsLetterOrDigit(ch) || ch == '.').ToArray());
+    if (string.IsNullOrWhiteSpace(safeExt) || safeExt.Length > 8) safeExt = ".bin";
+    var fname = $"{ObjectId.GenerateNewId()}{safeExt}";
+    var savePath = Path.Combine(publicDir, fname);
+    await using (var fs = new FileStream(savePath, FileMode.Create, FileAccess.Write, FileShare.None))
+    {
+        await file.CopyToAsync(fs);
+    }
+    // public URL path relative to Next public
+    var urlPath = $"/uploads/{fname}";
+    return Results.Ok(new { url = urlPath });
+}).RequireAuthorization();
+
 // Generic insert endpoint to write arbitrary data to any collection
 app.MapPost("/api/insert", async ([FromServices] IMongoDatabase db, [FromBody] InsertRequest req) =>
 {
