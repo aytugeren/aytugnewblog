@@ -1,5 +1,6 @@
-"use client";
+﻿"use client";
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 
 const snippets = [
   `public class Product {
@@ -15,9 +16,13 @@ const snippets = [
 ];
 
 export function CodeBackground() {
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [text, setText] = useState("");
   const [snippetIndex, setSnippetIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const currentSnippet = snippets[snippetIndex];
@@ -25,10 +30,9 @@ export function CodeBackground() {
       const timer = setTimeout(() => {
         setText((t) => t + currentSnippet[charIndex]);
         setCharIndex((i) => i + 1);
-      }, 40); // yazma hızı (ms)
+      }, 40);
       return () => clearTimeout(timer);
     } else {
-      // bitince 1 sn bekle, sonra yeni snippet'e geç
       const timer = setTimeout(() => {
         setSnippetIndex((i) => (i + 1) % snippets.length);
         setText("");
@@ -38,6 +42,10 @@ export function CodeBackground() {
     }
   }, [charIndex, snippetIndex]);
 
+  if (!mounted) return null;
+  const isDark = resolvedTheme === "dark";
+  if (!isDark) return null;
+
   return (
     <div
       aria-hidden
@@ -46,10 +54,10 @@ export function CodeBackground() {
         pointer-events-none
         flex items-center justify-center
         overflow-hidden
-        bg-gradient-to-b from-gray-900 to-black
+        bg-gradient-to-b from-[#0B1220] to-black
       "
     >
-      <pre className="whitespace-pre-wrap text-gray-400/15 text-sm max-w-4xl">
+      <pre className="whitespace-pre-wrap text-foreground/15 text-sm max-w-4xl">
         {text}
         <span className="animate-pulse">|</span>
       </pre>

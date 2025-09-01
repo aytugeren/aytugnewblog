@@ -11,12 +11,18 @@ function getToken(): string | null {
 function slugify(input: string): string {
   if (!input) return 'post'
   let s = input.toLowerCase().trim()
-  s = s
-    .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's')
-    .replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/[\s-]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+  const map: Record<string, string> = {
+    'ğ': 'g', 'Ğ': 'g',
+    'ü': 'u', 'Ü': 'u',
+    'ş': 's', 'Ş': 's',
+    'ı': 'i', 'İ': 'i',
+    'ö': 'o', 'Ö': 'o',
+    'ç': 'c', 'Ç': 'c',
+  }
+  s = s.replace(/[ğĞüÜşŞıİöÖçÇ]/g, ch => (map as any)[ch] || ch)
+       .replace(/[^a-z0-9\s-]/g, '')
+       .replace(/[\s-]+/g, '-')
+       .replace(/^-+|-+$/g, '')
   return s || 'post'
 }
 
@@ -74,7 +80,7 @@ export default function NewPostPage() {
   return (
     <form onSubmit={submit} className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Yeni Post</h1>
+        <h1 className="text-2xl font-semibold">Yeni Yazı</h1>
         <div className="flex gap-2">
           <button type="submit" disabled={loading} className="px-3 py-1 rounded bg-blue-600 text-white disabled:opacity-50">Kaydet</button>
         </div>
@@ -93,7 +99,7 @@ export default function NewPostPage() {
         <div className="space-y-1">
           <label className="text-sm">Slug</label>
           <div className="flex gap-2">
-            <input className="w-full border rounded px-3 py-2 bg-transparent" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="otomatik üretmek için boş bırakın" />
+            <input className="w-full border rounded px-3 py-2 bg-transparent" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder={"otomatik üretmek için boş bırakın"} />
             <button type="button" className="px-3 py-1 border rounded" onClick={autoSlug}>Otomatik</button>
           </div>
         </div>
@@ -121,3 +127,5 @@ export default function NewPostPage() {
     </form>
   )
 }
+
+

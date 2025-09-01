@@ -9,6 +9,8 @@ type HomeData = {
   Posts: any[]
   HasCv: boolean
   OngoingProjects: { Name: string; Percent: number }[]
+  HeroTitle?: string;
+  HeroSubtitle?: string;
 }
 
 const SAMPLE: HomeData = {
@@ -20,10 +22,10 @@ const SAMPLE: HomeData = {
     Tools: [{ Name: 'MongoDB', Level: 'intermediate' }],
   },
   Experiences: [
-    { CompanyName: 'Şirket', Tag: 'Fullstack', BeginDate: '2024-01', EndDate: '2025-08', WorkDescription: 'Açıklama' },
+    { CompanyName: 'Åirket', Tag: 'Fullstack', BeginDate: '2024-01', EndDate: '2025-08', WorkDescription: 'AÃ§Ä±klama' },
   ],
   Projects: [
-    { ProjectName: 'Projex', ProjectTechnologies: 'Next.js, .NET', ProductDescription: 'Açıklama', ProjectLink: '' },
+    { ProjectName: 'Projex', ProjectTechnologies: 'Next.js, .NET', ProductDescription: 'AÃ§Ä±klama', ProjectLink: '' },
   ],
   Posts: [],
   HasCv: false,
@@ -50,10 +52,10 @@ export default function AdminHomeDataPage() {
       const res = await fetch(`${base}/api/home`)
       if (res.status === 404) {
         setJsonText(JSON.stringify(SAMPLE, null, 2))
-        setMsg('Henüz veri yok. Şablon yüklendi.')
+        setMsg('HenÃ¼z veri yok. Åablon Yüklendi.')
         return
       }
-      if (!res.ok) throw new Error('HomeData yüklenemedi')
+      if (!res.ok) throw new Error('HomeData yÃ¼klenemedi')
       const data = await res.json()
       setJsonText(JSON.stringify(data, null, 2))
       setMsg('Yüklendi')
@@ -70,7 +72,7 @@ export default function AdminHomeDataPage() {
     setErr(null)
     try {
       const token = getToken()
-      if (!token) throw new Error('Oturum bulunamadı')
+      if (!token) throw new Error('Oturum bulunamadıÄ±')
       const body = JSON.parse(jsonText)
       const res = await fetch(`${base}/api/home/upsert`, {
         method: 'POST',
@@ -91,13 +93,13 @@ export default function AdminHomeDataPage() {
   }
 
   const removeAll = async () => {
-    if (!confirm('HomeData silinsin mi? Bu işlem geri alınamaz.')) return
+    if (!confirm('HomeData silinsin mi? Bu iÅŸlem geri alÄ±namaz.')) return
     setLoading(true)
     setMsg(null)
     setErr(null)
     try {
       const token = getToken()
-      if (!token) throw new Error('Oturum bulunamadı')
+      if (!token) throw new Error('Oturum bulunamadıÄ±')
       const res = await fetch(`${base}/api/home`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
@@ -114,7 +116,7 @@ export default function AdminHomeDataPage() {
 
   const loadTemplate = () => {
     setJsonText(JSON.stringify(SAMPLE, null, 2))
-    setMsg('Şablon yüklendi')
+    setMsg('Åablon Yüklendi')
   }
 
   return (
@@ -128,8 +130,8 @@ export default function AdminHomeDataPage() {
       <div className="flex items-center justify-between">
         <div />
         <div className="flex gap-2">
-          <button onClick={refresh} disabled={loading} className="px-3 py-1 border rounded disabled:opacity-50">Yenile</button>
-          <button onClick={loadTemplate} disabled={loading} className="px-3 py-1 border rounded disabled:opacity-50">Şablon</button>
+          <button onClick={refresh} disabled={loading} className="px-3 py-1 border rounded disabled:opacity-50">Yönetimile</button>
+          <button onClick={loadTemplate} disabled={loading} className="px-3 py-1 border rounded disabled:opacity-50">Åablon</button>
           <button onClick={upsert} disabled={loading} className="px-3 py-1 rounded bg-blue-600 text-white disabled:opacity-50">Kaydet/Upsert</button>
           <button onClick={removeAll} disabled={loading} className="px-3 py-1 rounded bg-red-600 text-white disabled:opacity-50">Sil</button>
         </div>
@@ -154,3 +156,6 @@ function getToken(): string | null {
   const m = document.cookie.match(/(?:^|; )token=([^;]+)/)
   return m ? decodeURIComponent(m[1]) : null
 }
+
+
+

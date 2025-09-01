@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,20 +6,52 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --card: #ffffff;
+  --card-foreground: #111827;
+  --border: #e5e7eb;
+  --input: #e5e7eb;
+  --primary: #2563eb;
+  --primary-foreground: #f8fafc;
+  --destructive: #ef4444;
+  --destructive-foreground: #f8fafc;
+  --ring: #3b82f6;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-ring: var(--ring);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Dark mode variables (next-themes adds .dark on <html>) */
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --muted: #111827;
+  --muted-foreground: #9ca3af;
+  --card: #0b0b0b;
+  --card-foreground: #e5e7eb;
+  --border: #1f2937;
+  --input: #1f2937;
+  --primary: #60a5fa;
+  --primary-foreground: #0b1020;
+  --destructive: #f87171;
+  --destructive-foreground: #0b0b0b;
+  --ring: #60a5fa;
 }
 
 body {
@@ -36,3 +68,54 @@ body {
 .skillbar-fill { transition: width 500ms cubic-bezier(.22,.9,.24,1), filter 200ms ease; animation: sb-fill 700ms cubic-bezier(.22,.9,.24,1); }
 .skillbar-shine::after { content: ""; position: absolute; inset: 0; background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%); transform: translateX(-100%); animation: sb-shimmer 2.2s ease-in-out infinite; mix-blend-mode: overlay; }
 @media (prefers-reduced-motion: reduce) { .skillbar-fill { animation: none; transition: none } .skillbar-shine::after { animation: none } }
+/* Typography colors mapped to theme tokens */
+.prose { color: var(--foreground); }
+.prose :where(h1,h2,h3,h4,strong){ color: var(--foreground); }
+.prose :where(p,li,blockquote,figcaption){ color: var(--foreground); }
+.prose a{ color: var(--primary); text-decoration-color: color-mix(in oklab, var(--primary) 60%, transparent); }
+.prose blockquote{ color: var(--muted-foreground); border-left-color: var(--border); }
+.prose hr{ border-color: var(--border); }
+.prose code{ background: color-mix(in oklab, var(--muted) 60%, transparent); color: var(--foreground); border-radius: .25rem; padding: .1rem .25rem; }
+.prose pre{ background: var(--muted); color: var(--foreground); border: 1px solid var(--border); }
+.prose table th,.prose table td{ border-color: var(--border); }
+/* Theme sunrise overlay */
+.theme-transition-overlay { position: fixed; inset: 0; z-index: 9999; pointer-events: none; overflow: hidden; }
+.theme-transition-overlay::before {
+  content: "";
+  position: absolute;
+  inset: -25%;
+  background: radial-gradient(50% 60% at 50% 80%, rgba(255,236,200,.75), rgba(255,236,200,0) 60%);
+  filter: blur(10px);
+  animation: theme-sunrise 750ms ease forwards;
+  mix-blend-mode: screen;
+}
+.dark .theme-transition-overlay::before {
+  background: radial-gradient(50% 60% at 50% 80%, rgba(98,139,255,.35), rgba(98,139,255,0) 60%);
+  mix-blend-mode: overlay;
+}
+@keyframes theme-sunrise {
+  0% { opacity: 0; transform: translateY(10%) scale(.95); }
+  50% { opacity: .7; }
+  100% { opacity: 0; transform: translateY(-8%) scale(1.05); }
+}
+/* Theme transition overlay - clearer visuals */
+.theme-transition-overlay { position: fixed; inset: 0; z-index: 9999; pointer-events: none; }
+.theme-transition-overlay::before {
+  content: ""; position: absolute; inset: -20%;
+  background: radial-gradient(60% 50% at 50% 90%, rgba(255,240,210,.85) 0%, rgba(255,240,210,0.0) 60%);
+  filter: blur(8px); opacity: 0; transform: translateY(10%);
+  animation: sunrise-light 1400ms ease forwards;
+}
+.theme-transition-overlay[data-to="dark"]::before {
+  background: radial-gradient(60% 50% at 50% 90%, rgba(60,80,150,.7) 0%, rgba(60,80,150,0.0) 60%);
+  animation: sunrise-dark 1400ms ease forwards;
+}
+@keyframes sunrise-light { 0%{opacity:0} 30%{opacity:.8} 100%{opacity:0; transform: translateY(-6%)} }
+@keyframes sunrise-dark  { 0%{opacity:0} 40%{opacity:.9} 100%{opacity:0; transform: translateY(-6%)} }
+
+/* Smooth in-page scrolling for anchor links */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+/* Prevent sticky header overlap when scrolling to anchors */
+section[id] { scroll-margin-top: 6rem; }

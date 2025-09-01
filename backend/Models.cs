@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -20,6 +20,7 @@ public record Project(
     string ProductDescription,
     string? ProjectLink = null
 );
+
 [BsonIgnoreExtraElements]
 public record Post(string Title, string Date, string Summary, string Slug)
 {
@@ -68,6 +69,8 @@ public class HomeData
 {
     [BsonId]
     public ObjectId Id { get; set; }
+    public string? HeroTitle { get; set; }
+    public string? HeroSubtitle { get; set; }
     public Dictionary<string, List<Skill>> Skills { get; set; } = new();
     public List<Experience> Experiences { get; set; } = new();
     public List<Project> Projects { get; set; } = new();

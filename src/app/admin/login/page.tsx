@@ -1,6 +1,6 @@
 "use client"
-import { useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -43,10 +43,10 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-[60vh] flex items-center justify-center">
       <form onSubmit={onSubmit} className="w-full max-w-sm space-y-4 border rounded p-6 bg-white/5">
-        <h1 className="text-xl font-semibold">Yönetim Paneli Girişi</h1>
+        <h1 className="text-xl font-semibold">{"Yönetim Paneli Girişi"}</h1>
         {error && <p className="text-red-500 text-sm">{error}</p>}
         <div className="space-y-1">
-          <label className="block text-sm">Kullanıcı Adı</label>
+          <label className="block text-sm">{"Kullanıcı Adı"}</label>
           <input
             className="w-full border rounded px-3 py-2 bg-transparent"
             value={username}
@@ -77,4 +77,3 @@ export default function AdminLoginPage() {
     </div>
   )
 }
-

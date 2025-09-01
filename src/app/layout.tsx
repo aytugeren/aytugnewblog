@@ -1,17 +1,18 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { VisitTracker } from "@/components/visit-tracker";
 import { ProjectIframeModal } from "@/components/project-iframe-modal";
+import { ScrollToTop } from "@/components/scroll-to-top";
 
 export const metadata: Metadata = {
-  title: "Aytuğ — Blog",
+  title: "Aytu\u011F Y \u2014 Blog",
   description: "Senior developer showcase + blog",
-  metadataBase: new URL("https://senin-domainin.com"), // 👉 domainin
+  metadataBase: new URL("https://senin-domainin.com"),
   alternates: {
     canonical: "/",
     types: {
-      "application/rss+xml": [{ url: "/rss.xml", title: "RSS Feed" }],
+      "application/rss+xml": [{ url: "/rss.xml", title: "Aytu\u011F Y \u2014 Blog" }],
     },
   },
 };
@@ -23,12 +24,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta charSet="utf-8" />
       </head>
       <body suppressHydrationWarning className="min-h-dvh bg-background text-foreground antialiased">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-           <VisitTracker />
-           {children}
-           {/* Global project iframe modal */}
-           <ProjectIframeModal />
-         </ThemeProvider>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          <VisitTracker />
+          {children}
+          {/* Global project iframe modal */}
+          <ProjectIframeModal />
+          <ScrollToTop />
+        </ThemeProvider>
       </body>
     </html>
   );
