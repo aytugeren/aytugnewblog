@@ -8,9 +8,20 @@ export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
   const { slug } = await params;
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
   const post = allPosts.find(p => p.slug === slug);
-  if (!post) return { title: "Yazı bulunamadı" };
-  return { title: post.title, description: post.summary };
+  if (!post){
+    const res = await fetch(`${apiUrl}/api/posts/${slug}`, { cache: "no-store" });
+    if (res.ok) {
+      const p = await res.json();
+      return { title: p.title, description: p.summary };
+    }
+  }
+  else{
+    return { title: post.title, description: post.summary };
+  }
+      
+  return { title: slug};
 }
 
 export default async function PostPage(
