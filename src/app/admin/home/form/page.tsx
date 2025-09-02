@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { useEffect, useMemo, useState } from 'react'
 
 type Skill = { Name: string; Level: string } // store Level as numeric string like "95"
@@ -18,8 +18,8 @@ type HomeData = {
 }
 
 const DEFAULT_DATA: HomeData = {
-  HeroTitle: "Aytuğ Y — Senior .NET & Frontend Engineer",
-  HeroSubtitle: "Yüksek etkili ürünler inşa eden, performans odaklı bir geliştirici. Takımların hızlı ve güvenilir şekilde teslimat yapmasını sağlar.",
+  HeroTitle: "Aytu\u011F Y \u2014 Senior .NET & Frontend Engineer",
+  HeroSubtitle: "Y\u00FCksek etkili \u00FCr\u00FCnler in\u015Fa eden, performans odakl\u0131 bir geli\u015Ftirici. Tak\u0131mlar\u0131n h\u0131zl\u0131 ve g\u00FCvenilir \u015Fekilde teslimat yapmas\u0131n\u0131 sa\u011Flar.",
   Skills: {},
   Experiences: [],
   Projects: [],
@@ -54,9 +54,9 @@ export default function AdminHomeFormPage() {
         if (res.status === 404) {
           setData(DEFAULT_DATA)
           setSavedSnapshot(JSON.stringify(toApiPayload(DEFAULT_DATA)))
-          setMsg('Yeni HomeData oluşturabilirsiniz.')
+          setMsg('Yeni HomeData oluÅŸturabilirsiniz.')
         } else if (!res.ok) {
-          throw new Error('HomeData yÃ¼klenemedi')
+          throw new Error('HomeData yÃƒÂ¼klenemedi')
         } else {
           const d = await res.json()
           const norm = normalizeFromApi(d)
@@ -76,7 +76,7 @@ export default function AdminHomeFormPage() {
     const beforeUnload = (e: BeforeUnloadEvent) => {
       if (!isDirty) return
       e.preventDefault()
-      e.returnValue = 'De\ği\şiklikleriniz kaybolacakt\ır..Ä±r.'
+      e.returnValue = 'De\u011Fi\u015Fiklikleriniz kaybolacakt\u0131r.'
     }
     window.addEventListener('beforeunload', beforeUnload)
 
@@ -92,7 +92,7 @@ export default function AdminHomeFormPage() {
       const url = new URL(href, window.location.href)
       if (url.origin !== window.location.origin) return
       if (url.href === window.location.href) return
-      const ok = window.confirm('De\ği\şiklikleriniz kaybolacakt\ır. Yine de devam edilsin mi?')
+      const ok = window.confirm('De\u011Fi\u015Fiklikleriniz kaybolacakt\u0131r. Yine de devam edilsin mi?')
       if (!ok) {
         e.preventDefault()
         e.stopPropagation()
@@ -112,7 +112,7 @@ export default function AdminHomeFormPage() {
     setErr(null)
     try {
       const token = getToken()
-      if (!token) throw new Error('Oturum bulunamadı')
+      if (!token) throw new Error('Oturum bulunamadÄ±')
       const res = await fetch(`${base}/api/home/upsert`, {
         method: 'POST',
         headers: {
@@ -121,7 +121,7 @@ export default function AdminHomeFormPage() {
         },
         body: JSON.stringify(toApiPayload(data)),
       })
-      if (!res.ok) throw new Error('Kaydetme baÅŸarÄ±sÄ±z')
+      if (!res.ok) throw new Error('Kaydetme baÃ…Å¸arÃ„Â±sÃ„Â±z')
       setMsg('Kaydedildi')
       setSavedSnapshot(JSON.stringify(toApiPayload(data)))
     } catch (e: any) {
@@ -133,7 +133,7 @@ export default function AdminHomeFormPage() {
 
   const uploadCv = async () => {
     if (!cvFile) {
-      setErr('PDF dosyasÄ± seÃ§in')
+      setErr('PDF dosyasÃ„Â± seÃƒÂ§in')
       return
     }
     setLoading(true)
@@ -141,7 +141,7 @@ export default function AdminHomeFormPage() {
     setErr(null)
     try {
       const token = getToken()
-      if (!token) throw new Error('Oturum bulunamadı')
+      if (!token) throw new Error('Oturum bulunamadÄ±')
       const fd = new FormData()
       fd.append('file', cvFile)
       const res = await fetch(`${base}/api/upload/cv`, {
@@ -149,8 +149,8 @@ export default function AdminHomeFormPage() {
         headers: { Authorization: `Bearer ${token}` },
         body: fd,
       })
-      if (!res.ok) throw new Error('CV yÃ¼klenemedi')
-      setMsg('CV yÃ¼klendi')
+      if (!res.ok) throw new Error('CV yÃƒÂ¼klenemedi')
+      setMsg('CV yÃƒÂ¼klendi')
       setData((d) => {
         const nd = { ...d, HasCv: true }
         setSavedSnapshot(JSON.stringify(toApiPayload(nd)))
@@ -172,7 +172,7 @@ export default function AdminHomeFormPage() {
         await fetch(`${base}/api/track/cv`, { method: 'POST' })
       } catch {}
       const res = await fetch('/cv.pdf', { cache: 'no-store' })
-      if (!res.ok) throw new Error('CV bulunamadÄ±')
+      if (!res.ok) throw new Error('CV bulunamadÃ„Â±')
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -184,7 +184,7 @@ export default function AdminHomeFormPage() {
       URL.revokeObjectURL(url)
       setMsg('CV indirildi')
     } catch (e: any) {
-      setErr(e.message || 'Ä°ndirme hatasÄ±')
+      setErr(e.message || 'Ã„Â°ndirme hatasÃ„Â±')
     }
   }
 
@@ -193,20 +193,20 @@ export default function AdminHomeFormPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-semibold">HomeData (Form)</h1>
-          <a href="/admin/home" className="text-sm underline">JSON dÃ¼zenleyiciye geÃ§</a>
+          <a href="/admin/home" className="text-sm underline">JSON dÃƒÂ¼zenleyiciye geÃƒÂ§</a>
         </div>
         <div className="flex gap-2 items-center">
-          {isDirty && <span className="text-xs text-amber-600">Kaydedilmemiş değişiklikler var</span>}
-          <button disabled={loading} onClick={saveAll} className="px-3 py-1 rounded bg-blue-600 text-white disabled:opacity-50">TÃ¼mÃ¼nÃ¼ Kaydet</button>
+          {isDirty && <span className="text-xs text-amber-600">KaydedilmemiÅŸ deÄŸiÅŸiklikler var</span>}
+          <button disabled={loading} onClick={saveAll} className="px-3 py-1 rounded bg-blue-600 text-white disabled:opacity-50">TÃƒÂ¼mÃƒÂ¼nÃƒÂ¼ Kaydet</button>
         </div>
       </div>
       {(msg || err) && <p className={err ? 'text-red-500 text-sm' : 'text-green-500 text-sm'}>{err || msg}</p>}
 
       <section className="border rounded p-4 space-y-3">
-        <h2 className="font-semibold">Ana Ekran Başlık & Açıklama</h2>
+        <h2 className="font-semibold">Ana Ekran BaÅŸlÄ±k & AÃ§Ä±klama</h2>
         <div className="space-y-2">
-          <input className="w-full border rounded px-2 py-1 bg-transparent" placeholder="Başlık" value={data.HeroTitle || ""} onChange={(e)=>setData(d=>({...d, HeroTitle: e.target.value}))} />
-          <textarea className="w-full border rounded px-2 py-1 bg-transparent min-h-[80px]" placeholder="Açıklama" value={data.HeroSubtitle || ""} onChange={(e)=>setData(d=>({...d, HeroSubtitle: e.target.value}))} />
+          <input className="w-full border rounded px-2 py-1 bg-transparent" placeholder="BaÅŸlÄ±k" value={data.HeroTitle || ""} onChange={(e)=>setData(d=>({...d, HeroTitle: e.target.value}))} />
+          <textarea className="w-full border rounded px-2 py-1 bg-transparent min-h-[80px]" placeholder="AÃ§Ä±klama" value={data.HeroSubtitle || ""} onChange={(e)=>setData(d=>({...d, HeroSubtitle: e.target.value}))} />
         </div>
       </section>
       <section className="border rounded p-4 space-y-3">
@@ -218,18 +218,18 @@ export default function AdminHomeFormPage() {
           </label>
           {data.HasCv && (
             <>
-              <a href="/cv.pdf" target="_blank" className="text-sm underline">CV&apos;yi görüntüle</a>
-              <button type="button" onClick={downloadCv} className="text-sm px-2 py-1 border rounded">Ä°ndir</button>
+              <a href="/cv.pdf" target="_blank" className="text-sm underline">CV&apos;yi gÃ¶rÃ¼ntÃ¼le</a>
+              <button type="button" onClick={downloadCv} className="text-sm px-2 py-1 border rounded">Ã„Â°ndir</button>
             </>
           )}
         </div>
         <div className="space-y-2">
-          <div className="text-sm text-gray-600">CV YÃ¼kle (PDF)</div>
+          <div className="text-sm text-gray-600">CV YÃƒÂ¼kle (PDF)</div>
           <div className="flex items-center gap-2">
             <input type="file" accept="application/pdf" onChange={(e) => setCvFile(e.target.files?.[0] ?? null)} />
-            <button type="button" onClick={uploadCv} disabled={loading || !cvFile} className="px-3 py-1 rounded bg-blue-600 text-white disabled:opacity-50">YÃ¼kle</button>
+            <button type="button" onClick={uploadCv} disabled={loading || !cvFile} className="px-3 py-1 rounded bg-blue-600 text-white disabled:opacity-50">YÃƒÂ¼kle</button>
           </div>
-          <p className="text-xs text-gray-500">Dosya, site kÃ¶kÃ¼ndeki <code>/cv.pdf</code> olarak kaydedilir.</p>
+          <p className="text-xs text-gray-500">Dosya, site kÃƒÂ¶kÃƒÂ¼ndeki <code>/cv.pdf</code> olarak kaydedilir.</p>
         </div>
       </section>
 
@@ -290,7 +290,7 @@ function SkillsEditor({ value, onChange }: { value: Record<string, Skill[]>; onC
     <section className="border rounded p-4 space-y-3">
       <h2 className="font-semibold">Yetenekler</h2>
       <div className="flex gap-2">
-        <input value={newCat} onChange={(e) => setNewCat(e.target.value)} placeholder="Kategori adÄ± (Ã¶rn. Languages)" className="border rounded px-2 py-1 flex-1 bg-transparent" />
+        <input value={newCat} onChange={(e) => setNewCat(e.target.value)} placeholder="Kategori adÃ„Â± (ÃƒÂ¶rn. Languages)" className="border rounded px-2 py-1 flex-1 bg-transparent" />
         <button type="button" onClick={addCategory} className="px-3 py-1 border rounded">Kategori Ekle</button>
       </div>
       <div className="space-y-4">
@@ -314,7 +314,7 @@ function SkillsEditor({ value, onChange }: { value: Record<string, Skill[]>; onC
           </div>
         ))}
         {Object.keys(value).length === 0 && (
-          <p className="text-sm text-gray-500">HenÃ¼z kategori yok. Bir kategori ekleyin.</p>
+          <p className="text-sm text-gray-500">HenÃƒÂ¼z kategori yok. Bir kategori ekleyin.</p>
         )}
       </div>
     </section>
@@ -343,18 +343,18 @@ function ExperiencesEditor({ value, onChange }: { value: Experience[]; onChange:
         {value.map((e, i) => (
           <div key={i} className="border rounded p-3 space-y-2">
             <div className="grid grid-cols-2 gap-2">
-              <input className="border rounded px-2 py-1 bg-transparent" placeholder="Åirket" value={e.CompanyName} onChange={(ev) => update(i, { CompanyName: ev.target.value })} />
-              <input className="border rounded px-2 py-1 bg-transparent" placeholder="Etiket (Ã¶rn. Fullstack)" value={e.Tag} onChange={(ev) => update(i, { Tag: ev.target.value })} />
-              <input className="border rounded px-2 py-1 bg-transparent" placeholder="BaÅŸlangÄ±Ã§ (YYYY-MM)" value={e.BeginDate} onChange={(ev) => update(i, { BeginDate: ev.target.value })} />
-              <input className="border rounded px-2 py-1 bg-transparent" placeholder="BitiÅŸ (YYYY-MM / Devam)" value={e.EndDate} onChange={(ev) => update(i, { EndDate: ev.target.value })} />
+              <input className="border rounded px-2 py-1 bg-transparent" placeholder="Ã…Âirket" value={e.CompanyName} onChange={(ev) => update(i, { CompanyName: ev.target.value })} />
+              <input className="border rounded px-2 py-1 bg-transparent" placeholder="Etiket (ÃƒÂ¶rn. Fullstack)" value={e.Tag} onChange={(ev) => update(i, { Tag: ev.target.value })} />
+              <input className="border rounded px-2 py-1 bg-transparent" placeholder="BaÃ…Å¸langÃ„Â±ÃƒÂ§ (YYYY-MM)" value={e.BeginDate} onChange={(ev) => update(i, { BeginDate: ev.target.value })} />
+              <input className="border rounded px-2 py-1 bg-transparent" placeholder="BitiÃ…Å¸ (YYYY-MM / Devam)" value={e.EndDate} onChange={(ev) => update(i, { EndDate: ev.target.value })} />
             </div>
-            <textarea className="w-full border rounded px-2 py-1 bg-transparent" placeholder="AÃ§Ä±klama" value={e.WorkDescription} onChange={(ev) => update(i, { WorkDescription: ev.target.value })} />
+            <textarea className="w-full border rounded px-2 py-1 bg-transparent" placeholder="AÃƒÂ§Ã„Â±klama" value={e.WorkDescription} onChange={(ev) => update(i, { WorkDescription: ev.target.value })} />
             <div className="text-right">
               <button onClick={() => remove(i)} className="text-sm px-2 py-1 border rounded text-red-600">Sil</button>
             </div>
           </div>
         ))}
-        {value.length === 0 && <p className="text-sm text-gray-500">HenÃ¼z deneyim eklenmedi.</p>}
+        {value.length === 0 && <p className="text-sm text-gray-500">HenÃƒÂ¼z deneyim eklenmedi.</p>}
       </div>
     </section>
   )
@@ -382,17 +382,17 @@ function ProjectsEditor({ value, onChange }: { value: Project[]; onChange: (v: P
         {value.map((p, i) => (
           <div key={i} className="border rounded p-3 space-y-2">
             <div className="grid grid-cols-2 gap-2">
-              <input className="border rounded px-2 py-1 bg-transparent" placeholder="Proje AdÄ±" value={p.ProjectName} onChange={(ev) => update(i, { ProjectName: ev.target.value })} />
+              <input className="border rounded px-2 py-1 bg-transparent" placeholder="Proje AdÃ„Â±" value={p.ProjectName} onChange={(ev) => update(i, { ProjectName: ev.target.value })} />
               <input className="border rounded px-2 py-1 bg-transparent" placeholder="Teknolojiler" value={p.ProjectTechnologies} onChange={(ev) => update(i, { ProjectTechnologies: ev.target.value })} />
-              <input className="border rounded px-2 py-1 bg-transparent" placeholder="BaÄŸlantÄ± (opsiyonel)" value={p.ProjectLink ?? ''} onChange={(ev) => update(i, { ProjectLink: ev.target.value })} />
+              <input className="border rounded px-2 py-1 bg-transparent" placeholder="BaÃ„Å¸lantÃ„Â± (opsiyonel)" value={p.ProjectLink ?? ''} onChange={(ev) => update(i, { ProjectLink: ev.target.value })} />
             </div>
-            <textarea className="w-full border rounded px-2 py-1 bg-transparent" placeholder="AÃ§Ä±klama" value={p.ProductDescription} onChange={(ev) => update(i, { ProductDescription: ev.target.value })} />
+            <textarea className="w-full border rounded px-2 py-1 bg-transparent" placeholder="AÃƒÂ§Ã„Â±klama" value={p.ProductDescription} onChange={(ev) => update(i, { ProductDescription: ev.target.value })} />
             <div className="text-right">
               <button onClick={() => remove(i)} className="text-sm px-2 py-1 border rounded text-red-600">Sil</button>
             </div>
           </div>
         ))}
-        {value.length === 0 && <p className="text-sm text-gray-500">Henüz proje eklenmedi.</p>}
+        {value.length === 0 && <p className="text-sm text-gray-500">HenÃ¼z proje eklenmedi.</p>}
       </div>
     </section>
   )
@@ -421,7 +421,7 @@ function OngoingEditor({ value, onChange }: { value: Ongoing[]; onChange: (v: On
           <div key={i} className="border rounded p-3 space-y-2">
             <div className="grid grid-cols-3 gap-2 items-center">
               <input className="border rounded px-2 py-1 bg-transparent" placeholder="Ad" value={o.Name} onChange={(ev) => update(i, { Name: ev.target.value })} />
-              <input type="number" min={0} max={100} className="border rounded px-2 py-1 bg-transparent" placeholder="Yüzde" value={o.Percent} onChange={(ev) => update(i, { Percent: clamp0to100(Number(ev.target.value)) })} />
+              <input type="number" min={0} max={100} className="border rounded px-2 py-1 bg-transparent" placeholder="YÃ¼zde" value={o.Percent} onChange={(ev) => update(i, { Percent: clamp0to100(Number(ev.target.value)) })} />
               <input type="range" min={0} max={100} value={o.Percent} onChange={(ev) => update(i, { Percent: clamp0to100(Number(ev.target.value)) })} />
             </div>
             <div className="text-right">
@@ -429,7 +429,7 @@ function OngoingEditor({ value, onChange }: { value: Ongoing[]; onChange: (v: On
             </div>
           </div>
         ))}
-        {value.length === 0 && <p className="text-sm text-gray-500">HenÃ¼z Ã¶ÄŸe eklenmedi.</p>}
+        {value.length === 0 && <p className="text-sm text-gray-500">HenÃƒÂ¼z ÃƒÂ¶Ã„Å¸e eklenmedi.</p>}
       </div>
     </section>
   )
@@ -517,6 +517,7 @@ function toApiPayload(data: HomeData) {
     ongoingProjects: data.OngoingProjects.map(o => ({ name: o.Name, percent: o.Percent })),
   }
 }
+
 
 
 

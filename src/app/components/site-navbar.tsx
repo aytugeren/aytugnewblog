@@ -1,9 +1,19 @@
-﻿import Link from "next/link";
-import { cookies } from "next/headers";
+﻿"use client";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { ThemeToggle } from "./theme-toggle";
 
 export function SiteNavbar() {
-  const isAdmin = Boolean(cookies().get("token")?.value);
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    try {
+      const m = document.cookie.match(/(?:^|; )token=([^;]+)/);
+      setIsAdmin(!!m);
+    } catch {
+      setIsAdmin(false);
+    }
+  }, []);
+
   return (
     <header className="sticky top-0 z-50 border-b bg-background/70 backdrop-blur">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">

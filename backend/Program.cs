@@ -1,4 +1,4 @@
-using MongoDB.Driver;
+﻿using MongoDB.Driver;
 using MongoDB.Bson;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +10,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using System.Net;
+using Microsoft.Extensions.Caching.Memory;
 
 var builder = WebApplication.CreateBuilder(args);
 // Use IPv4 loopback by default to avoid localhost -> ::1 resolution issues
@@ -17,6 +18,8 @@ var mongoConn = Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING") ??
 var mongoDbName = Environment.GetEnvironmentVariable("MONGO_DB_NAME") ?? "aytugdb";
 builder.Services.AddSingleton<IMongoClient>(_ => new MongoClient(mongoConn));
 builder.Services.AddSingleton<IMongoDatabase>(sp => sp.GetRequiredService<IMongoClient>().GetDatabase(mongoDbName));
+// Caching
+builder.Services.AddMemoryCache();
 
 // Auth configuration
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? "dev-secret-change-me-please-1234567890";
@@ -82,6 +85,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+var homeTtlSec = int.TryParse(Environment.GetEnvironmentVariable("CACHE_TTL_HOME_SECONDS"), out var _h) ? _h : 120;
+var postsTtlSec = int.TryParse(Environment.GetEnvironmentVariable("CACHE_TTL_POSTS_SECONDS"), out var _p) ? _p : 120;
 
 // Use CORS before mapping endpoints
 app.UseCors(CorsPolicy);
@@ -89,195 +94,19 @@ app.UseCors(CorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("/api/home", (IMongoDatabase db) =>
+app.MapGet("/api/home", async (IMongoDatabase db, IMemoryCache cache) =>
 {
+    var key = "home_doc";
+    if (cache.TryGetValue(key, out HomeData? c) && c is not null)
+        return Results.Json(c);
     var col = db.GetCollection<HomeData>("home");
-    var data = col.Find(FilterDefinition<HomeData>.Empty).FirstOrDefault();
-    return data is null ? Results.NotFound() : Results.Json(data);
+    var data = await col.Find(FilterDefinition<HomeData>.Empty).FirstOrDefaultAsync();
+    if (data is null)
+        return Results.NotFound();
+    cache.Set(key, data, TimeSpan.FromSeconds(homeTtlSec));
+    return Results.Json(data);
 });
 
-app.MapPost("/api/home", (IMongoDatabase db, HomeData data) =>
-{
-    var col = db.GetCollection<HomeData>("home");
-    if (data.Id == ObjectId.Empty)
-    {
-        data.Id = ObjectId.GenerateNewId();
-    }
-    col.InsertOne(data);
-    return Results.Created($"/api/home/{data.Id}", data);
-}).RequireAuthorization();
-
-// Insert-or-Update (single document) endpoint for home data
-app.MapPost("/api/home/upsert", (IMongoDatabase db, HomeData data) =>
-{
-    var col = db.GetCollection<HomeData>("home");
-    var existing = col.Find(FilterDefinition<HomeData>.Empty).FirstOrDefault();
-
-    if (existing is null)
-    {
-        if (data.Id == ObjectId.Empty)
-        {
-            data.Id = ObjectId.GenerateNewId();
-        }
-        col.InsertOne(data);
-        return Results.Created($"/api/home/{data.Id}", data);
-    }
-    else
-    {
-        // Keep the existing Id and replace the document
-        data.Id = existing.Id;
-        col.ReplaceOne(x => x.Id == existing.Id, data);
-        return Results.Ok(data);
-    }
-}).RequireAuthorization();
-
-app.MapPut("/api/home", (IMongoDatabase db, HomeData data) =>
-{
-    var col = db.GetCollection<HomeData>("home");
-    col.ReplaceOne(x => x.Id == data.Id, data);
-    return Results.NoContent();
-}).RequireAuthorization();
-
-// Delete all home documents (since we keep at most one)
-app.MapDelete("/api/home", (IMongoDatabase db) =>
-{
-    var col = db.GetCollection<HomeData>("home");
-    var result = col.DeleteMany(FilterDefinition<HomeData>.Empty);
-    return Results.Ok(new { deleted = result.DeletedCount });
-}).RequireAuthorization();
-
-// Upload CV file and store to a path FE serves (default: public/cv.pdf)
-app.MapPost("/api/upload/cv", async ([FromServices] IMongoDatabase db, HttpRequest request) =>
-{
-    if (!request.HasFormContentType)
-    {
-        return Results.BadRequest("multipart/form-data expected");
-    }
-    var form = await request.ReadFormAsync();
-    var file = form.Files.GetFile("file");
-    if (file is null || file.Length == 0)
-    {
-        return Results.BadRequest("file is required");
-    }
-
-    var targetPath = Environment.GetEnvironmentVariable("CV_OUTPUT_PATH");
-    if (string.IsNullOrWhiteSpace(targetPath))
-    {
-        // Default to monorepo public folder relative to app base dir
-        var pub = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../public"));
-        Directory.CreateDirectory(pub);
-        targetPath = Path.Combine(pub, "cv.pdf");
-    }
-
-    var dir = Path.GetDirectoryName(targetPath);
-    if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
-
-    await using (var fs = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None))
-    {
-        await file.CopyToAsync(fs);
-    }
-
-    // Ensure HomeData.HasCv = true
-    var bcol = db.GetCollection<BsonDocument>("home");
-    var update = Builders<BsonDocument>.Update.Set("HasCv", true);
-    await bcol.UpdateOneAsync(FilterDefinition<BsonDocument>.Empty, update, new UpdateOptions { IsUpsert = true });
-
-    return Results.Ok(new { saved = true, path = targetPath, hasCv = true });
-}).RequireAuthorization();
-
-// Upload blog images; returns public URL
-app.MapPost("/api/upload/image", async (HttpRequest request) =>
-{
-    if (!request.HasFormContentType)
-    {
-        return Results.BadRequest("multipart/form-data expected");
-    }
-    var form = await request.ReadFormAsync();
-    var file = form.Files.GetFile("file");
-    if (file is null || file.Length == 0)
-    {
-        return Results.BadRequest("file is required");
-    }
-    // simple content-type guard
-    if (!file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
-    {
-        return Results.BadRequest("only image files allowed");
-    }
-
-    var uploadsDirEnv = Environment.GetEnvironmentVariable("UPLOADS_DIR");
-    string publicDir;
-    if (!string.IsNullOrWhiteSpace(uploadsDirEnv))
-    {
-        publicDir = uploadsDirEnv;
-    }
-    else
-    {
-        publicDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../public/uploads"));
-    }
-    Directory.CreateDirectory(publicDir);
-
-    var ext = Path.GetExtension(file.FileName);
-    if (string.IsNullOrWhiteSpace(ext)) ext = ".bin";
-    var safeExt = new string(ext.Where(ch => char.IsLetterOrDigit(ch) || ch == '.').ToArray());
-    if (string.IsNullOrWhiteSpace(safeExt) || safeExt.Length > 8) safeExt = ".bin";
-    var fname = $"{ObjectId.GenerateNewId()}{safeExt}";
-    var savePath = Path.Combine(publicDir, fname);
-    await using (var fs = new FileStream(savePath, FileMode.Create, FileAccess.Write, FileShare.None))
-    {
-        await file.CopyToAsync(fs);
-    }
-    // public URL path relative to Next public
-    var urlPath = $"/uploads/{fname}";
-    return Results.Ok(new { url = urlPath });
-}).RequireAuthorization();
-
-// Generic insert endpoint to write arbitrary data to any collection
-app.MapPost("/api/insert", async ([FromServices] IMongoDatabase db, [FromBody] InsertRequest req) =>
-{
-    if (string.IsNullOrWhiteSpace(req.Collection))
-    {
-        return Results.BadRequest("'collection' is required");
-    }
-
-    // Convert incoming JSON to BsonDocument
-    BsonDocument doc;
-    try
-    {
-        var json = req.Document.ValueKind == JsonValueKind.Undefined
-            ? null
-            : req.Document.GetRawText();
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return Results.BadRequest("'document' is required");
-        }
-        doc = BsonDocument.Parse(json);
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest($"invalid document: {ex.Message}");
-    }
-
-    if (!doc.Contains("_id"))
-    {
-        doc["_id"] = ObjectId.GenerateNewId();
-    }
-
-    var col = db.GetCollection<BsonDocument>(req.Collection);
-    await col.InsertOneAsync(doc);
-
-    var id = doc["_id"].IsObjectId ? doc["_id"].AsObjectId.ToString() : doc["_id"].ToString();
-
-    // Convert BsonDocument to plain .NET types for System.Text.Json
-    var plain = (Dictionary<string, object?>)BsonTypeMapper.MapToDotNetValue(doc);
-    if (plain.TryGetValue("_id", out var idVal) && idVal is ObjectId oid)
-    {
-        plain["_id"] = oid.ToString();
-    }
-
-    return Results.Created($"/api/{req.Collection}/{id}", plain);
-}).RequireAuthorization();
-
-// Posts endpoints
 app.MapGet("/api/posts", (IMongoDatabase db) =>
 {
     var col = db.GetCollection<Post>("posts");
@@ -286,6 +115,7 @@ app.MapGet("/api/posts", (IMongoDatabase db) =>
     var result = posts.Select(p => new { id = p.Id.ToString(), p.Title, p.Date, p.Summary, p.Slug, p.Tags });
     return Results.Json(result);
 });
+
 
 app.MapGet("/api/posts/{slug}", (IMongoDatabase db, string slug) =>
 {
@@ -296,8 +126,9 @@ app.MapGet("/api/posts/{slug}", (IMongoDatabase db, string slug) =>
     return Results.Json(result);
 });
 
+
 // Create a post and optionally write an MDX file under content/posts
-app.MapPost("/api/posts", async (IMongoDatabase db, PostCreate req) =>
+app.MapPost("/api/posts", async (IMongoDatabase db, IMemoryCache cache, PostCreate req) =>
 {
     if (string.IsNullOrWhiteSpace(req.Title) || string.IsNullOrWhiteSpace(req.Slug) || string.IsNullOrWhiteSpace(req.Date))
     {
@@ -319,7 +150,7 @@ app.MapPost("/api/posts", async (IMongoDatabase db, PostCreate req) =>
         Published = req.Published ?? true,
     };
 
-    await postsCol.InsertOneAsync(post);
+    await postsCol.InsertOneAsync(post); cache.Remove("posts_all"); cache.Remove($"post_{post.Slug}");
 
     // Try to write an MDX file mirroring the post
     try
@@ -366,7 +197,7 @@ app.MapPost("/api/posts", async (IMongoDatabase db, PostCreate req) =>
 }).RequireAuthorization();
 
 // Update a post by ObjectId in route, partial update supported
-app.MapPut("/api/posts/{id}", async (IMongoDatabase db, string id, PostUpdate update) =>
+app.MapPut("/api/posts/{id}", async (IMongoDatabase db, IMemoryCache cache, string id, PostUpdate update) =>
 {
     if (!ObjectId.TryParse(id, out var oid))
     {
@@ -593,10 +424,10 @@ static string Slugify(string input)
     var s = input.Trim().ToLowerInvariant();
     // Basic transliteration for Turkish characters
     s = s
-        .Replace("ğ", "g").Replace("ü", "u").Replace("ş", "s")
-        .Replace("ı", "i").Replace("i̇", "i").Replace("ö", "o").Replace("ç", "c")
-        .Replace("Ğ", "g").Replace("Ü", "u").Replace("Ş", "s")
-        .Replace("İ", "i").Replace("I", "i").Replace("Ö", "o").Replace("Ç", "c");
+        .Replace("ÄŸ", "g").Replace("Ã¼", "u").Replace("ÅŸ", "s")
+        .Replace("Ä±", "i").Replace("iÌ‡", "i").Replace("Ã¶", "o").Replace("Ã§", "c")
+        .Replace("Ä", "g").Replace("Ãœ", "u").Replace("Å", "s")
+        .Replace("Ä°", "i").Replace("I", "i").Replace("Ã–", "o").Replace("Ã‡", "c");
     s = Regex.Replace(s, @"[^a-z0-9\s-_]", "");
     s = Regex.Replace(s, @"[\s-_]+", "-");
     s = s.Trim('-');
@@ -604,7 +435,7 @@ static string Slugify(string input)
 }
 
 // Delete a post by its ObjectId string
-app.MapDelete("/api/posts/{id}", async (IMongoDatabase db, string id) =>
+app.MapDelete("/api/posts/{id}", async (IMongoDatabase db, IMemoryCache cache, string id) =>
 {
     if (!ObjectId.TryParse(id, out var oid))
     {
@@ -612,12 +443,12 @@ app.MapDelete("/api/posts/{id}", async (IMongoDatabase db, string id) =>
     }
 
     var col = db.GetCollection<Post>("posts");
-    var result = await col.DeleteOneAsync(p => p.Id == oid);
+    var result = await col.DeleteOneAsync(p => p.Id == oid); cache.Remove("posts_all");
     return result.DeletedCount == 0 ? Results.NotFound() : Results.NoContent();
 }).RequireAuthorization();
 
 // Cleanup: delete posts with null or missing key fields
-app.MapDelete("/api/posts/cleanup/nulls", async (IMongoDatabase db) =>
+app.MapDelete("/api/posts/cleanup/nulls", async (IMongoDatabase db, IMemoryCache cache) =>
 {
     var bcol = db.GetCollection<BsonDocument>("posts");
     var f = Builders<BsonDocument>.Filter.Or(
@@ -632,7 +463,7 @@ app.MapDelete("/api/posts/cleanup/nulls", async (IMongoDatabase db) =>
     );
 
     var result = await bcol.DeleteManyAsync(f);
-    return Results.Ok(new { deleted = result.DeletedCount });
+    cache.Remove("home_doc"); return Results.Ok(new { deleted = result.DeletedCount });
 }).RequireAuthorization();
 
 // Simple DB health check: pings MongoDB and returns status
@@ -649,7 +480,6 @@ app.MapGet("/api/health/db", async ([FromServices] IMongoDatabase db) =>
         return Results.Problem(title: "MongoDB connection failed", detail: ex.Message);
     }
 });
-
 
 // Tracking: unique visitors by IP (no auth)
 app.MapPost("/api/track/visit", async (IMongoDatabase db, HttpContext ctx) =>
@@ -739,3 +569,5 @@ static string GetClientIp(HttpContext ctx)
 }
 
 app.Run();
+
+

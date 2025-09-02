@@ -1,6 +1,7 @@
-"use client"
+﻿"use client"
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { SiteStatusPanel } from '@/components/site-status-panel'
 
 type Me = { name: string; roles: string[] }
 type Stats = { projects: number; posts: number; visitors: number; cvDownloads: number }
@@ -15,7 +16,6 @@ export default function AdminDashboard() {
     const token = getToken()
     if (!token) return
     const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'
-    // me
     fetch(`${base}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
       .then(async (r) => {
         if (!r.ok) throw new Error('Yetkilendirme başarısız')
@@ -23,7 +23,6 @@ export default function AdminDashboard() {
         setMe(d)
       })
       .catch((e) => setError(e.message))
-    // stats
     fetch(`${base}/api/stats`, { headers: { Authorization: `Bearer ${token}` } })
       .then(async (r) => {
         if (!r.ok) return
@@ -39,13 +38,13 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{"Yönetim Paneli"}</h1>
-        <button onClick={logout} className="text-sm px-3 py-1 rounded border">{"Çıkış Yap"}</button>
+        <h1 className="text-2xl font-semibold">Yönetim Paneli</h1>
+        <button onClick={logout} className="text-sm px-3 py-1 rounded border">Çıkış Yap</button>
       </div>
       {me && (
-        <p className="text-sm text-gray-400">{"Hoş geldin"}, {me.name}</p>
+        <p className="text-sm text-gray-400">Hoş geldin, {me.name}</p>
       )}
       {error && (
         <p className="text-sm text-red-500">{error}</p>
@@ -54,10 +53,12 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <StatCard label="Projeler" value={stats.projects} />
           <StatCard label="Postlar" value={stats.posts} />
-          <StatCard label={"Ziyaretçiler"} value={stats.visitors} />
-          <StatCard label={"CV İndirme"} value={stats.cvDownloads} />
+          <StatCard label="Ziyaretçiler" value={stats.visitors} />
+          <StatCard label="CV İndirme" value={stats.cvDownloads} />
         </div>
       )}
+
+      <SiteStatusPanel />
     </div>
   )
 }
