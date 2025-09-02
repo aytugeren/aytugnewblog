@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { MediumEditor } from '@/components/medium-editor'
+import { apiFetch } from '@/services/api'
 
 function getToken(): string | null {
   const m = document.cookie.match(/(?:^|; )token=([^;]+)/)
@@ -28,7 +29,6 @@ function slugify(input: string): string {
 
 export default function NewPostPage() {
   const router = useRouter()
-  const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'
   const today = new Date().toISOString().slice(0, 10)
 
   const [title, setTitle] = useState('')
@@ -61,7 +61,7 @@ export default function NewPostPage() {
         body,
         published,
       }
-      const res = await fetch(`${base}/api/posts`, {
+      const res = await apiFetch('/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),

@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useState } from 'react'
+import { apiFetch } from '@/services/api'
 
 type HomeData = {
   Id?: string
@@ -38,8 +39,6 @@ export default function AdminHomeDataPage() {
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
 
-  const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'
-
   useEffect(() => {
     refresh()
   }, [])
@@ -49,7 +48,7 @@ export default function AdminHomeDataPage() {
     setMsg(null)
     setErr(null)
     try {
-      const res = await fetch(`${base}/api/home`)
+      const res = await apiFetch('/api/home')
       if (res.status === 404) {
         setJsonText(JSON.stringify(SAMPLE, null, 2))
         setMsg('HenÃ¼z veri yok. Åablon Yüklendi.')
@@ -74,7 +73,7 @@ export default function AdminHomeDataPage() {
       const token = getToken()
       if (!token) throw new Error('Oturum bulunamadıÄ±')
       const body = JSON.parse(jsonText)
-      const res = await fetch(`${base}/api/home/upsert`, {
+      const res = await apiFetch('/api/home/upsert', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -100,7 +99,7 @@ export default function AdminHomeDataPage() {
     try {
       const token = getToken()
       if (!token) throw new Error('Oturum bulunamadıÄ±')
-      const res = await fetch(`${base}/api/home`, {
+      const res = await apiFetch('/api/home', {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })

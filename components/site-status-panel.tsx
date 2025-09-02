@@ -1,5 +1,6 @@
 ﻿"use client";
 import { useEffect, useState } from "react";
+import { fetchSiteStatus } from '@/services/site';
 
 type Check = { url: string; ok: boolean; status: number; ms: number; size: number; encodingWarnings?: string[]; error?: string };
 
@@ -21,7 +22,7 @@ export function SiteStatusPanel() {
   const load = async () => {
     try {
       setError(null);
-      const res = await fetch("/api/admin/site-status", { cache: "no-store" });
+      const res = await fetchSiteStatus();
       if (!res.ok) throw new Error("Durum alınamadı");
       const j = await res.json();
       setData(j);

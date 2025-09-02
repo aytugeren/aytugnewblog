@@ -1,6 +1,7 @@
 import { SiteNavbar } from "../components/site-navbar";
 import { Section } from "@/components/section";
 import { ProjectCard } from "@/components/project-card";
+import { apiFetch } from '@/services/api';
 
 type RawProject = {
   projectName?: string;
@@ -44,11 +45,9 @@ function normalizeProject(p: RawProject) {
 }
 
 export default async function ProjectsPage() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
-
   let rawProjects: RawProject[] = [];
   try {
-    const res = await fetch(`${apiUrl}/api/home`, { cache: "no-store" });
+    const res = await apiFetch('/api/home');
     if (res.ok) {
       const data = await res.json();
       rawProjects = Array.isArray(data?.projects) ? data.projects : [];
