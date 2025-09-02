@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { apiFetch } from '@/services/api'
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -17,8 +18,7 @@ export default function AdminLoginPage() {
     setLoading(true)
     setError(null)
     try {
-      const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'
-      const res = await fetch(`${base}/api/auth/login`, {
+      const res = await apiFetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),

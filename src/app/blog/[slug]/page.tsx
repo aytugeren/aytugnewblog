@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { SiteNavbar } from "../../components/site-navbar";
 import { Mdx } from "../../components/mdx";
+import { apiFetch } from '@/services/api';
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> }
@@ -19,9 +20,8 @@ export default async function PostPage(
   const { slug } = await params;
   const post = allPosts.find(p => p.slug === slug);
   if (!post) {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
     try {
-      const res = await fetch(`${apiUrl}/api/posts/${slug}`, { cache: "no-store" });
+      const res = await apiFetch(`/api/posts/${slug}`);
       if (res.ok) {
         const p = await res.json();
         const date = typeof p.date === 'string' ? p.date : '';

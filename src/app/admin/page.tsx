@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SiteStatusPanel } from '@/components/site-status-panel'
+import { apiFetch } from '@/services/api'
 
 type Me = { name: string; roles: string[] }
 type Stats = { projects: number; posts: number; visitors: number; cvDownloads: number }
@@ -15,15 +16,14 @@ export default function AdminDashboard() {
   useEffect(() => {
     const token = getToken()
     if (!token) return
-    const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'
-    fetch(`${base}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+    apiFetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
       .then(async (r) => {
         if (!r.ok) throw new Error('Yetkilendirme başarısız')
         const d = (await r.json()) as Me
         setMe(d)
       })
       .catch((e) => setError(e.message))
-    fetch(`${base}/api/stats`, { headers: { Authorization: `Bearer ${token}` } })
+    apiFetch('/api/stats', { headers: { Authorization: `Bearer ${token}` } })
       .then(async (r) => {
         if (!r.ok) return
         const s = (await r.json()) as Stats

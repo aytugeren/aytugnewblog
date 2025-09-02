@@ -1,11 +1,11 @@
 "use client"
 import { useEffect } from 'react'
+import { apiFetch } from '@/services/api'
 
 export function VisitTracker() {
   useEffect(() => {
-    const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'
     // fire-and-forget; ignore errors
-    fetch(`${base}/api/track/visit`, { method: 'POST' }).catch(() => {})
+    apiFetch('/api/track/visit', { method: 'POST' }).catch(() => {})
   }, [])
   return null
 }

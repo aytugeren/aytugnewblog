@@ -1,5 +1,6 @@
 ﻿"use client"
 import { useEffect, useMemo, useState } from 'react'
+import { apiFetch } from '@/services/api'
 
 type Skill = { Name: string; Level: string } // store Level as numeric string like "95"
 type Experience = { CompanyName: string; Tag: string; BeginDate: string; EndDate: string; WorkDescription: string }
@@ -29,7 +30,6 @@ const DEFAULT_DATA: HomeData = {
 }
 
 export default function AdminHomeFormPage() {
-  const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'
   const [data, setData] = useState<HomeData>(DEFAULT_DATA)
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
@@ -50,7 +50,7 @@ export default function AdminHomeFormPage() {
       setMsg(null)
       setErr(null)
       try {
-        const res = await fetch(`${base}/api/home`)
+        const res = await apiFetch('/api/home')
         if (res.status === 404) {
           setData(DEFAULT_DATA)
           setSavedSnapshot(JSON.stringify(toApiPayload(DEFAULT_DATA)))
@@ -69,7 +69,7 @@ export default function AdminHomeFormPage() {
         setLoading(false)
       }
     })()
-  }, [base])
+  }, [])
 
   // Warn user before leaving when there are unsaved changes
   useEffect(() => {
@@ -113,7 +113,7 @@ export default function AdminHomeFormPage() {
     try {
       const token = getToken()
       if (!token) throw new Error('Oturum bulunamadÄ±')
-      const res = await fetch(`${base}/api/home/upsert`, {
+      const res = await apiFetch('/api/home/upsert', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,7 +144,7 @@ export default function AdminHomeFormPage() {
       if (!token) throw new Error('Oturum bulunamadÄ±')
       const fd = new FormData()
       fd.append('file', cvFile)
-      const res = await fetch(`${base}/api/upload/cv`, {
+      const res = await apiFetch('/api/upload/cv', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: fd,
@@ -168,8 +168,7 @@ export default function AdminHomeFormPage() {
       setErr(null)
       setMsg(null)
       try {
-        const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'
-        await fetch(`${base}/api/track/cv`, { method: 'POST' })
+        await apiFetch('/api/track/cv', { method: 'POST' })
       } catch {}
       const res = await fetch('/cv.pdf', { cache: 'no-store' })
       if (!res.ok) throw new Error('CV bulunamadÃ„Â±')

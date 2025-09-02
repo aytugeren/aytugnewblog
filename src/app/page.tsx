@@ -10,6 +10,7 @@ import { PostListItem } from "@/components/post-list-item";
 import { Entrance3D } from "@/components/entrance-3d";
 import { CodeBackground } from "./components/codebackground";
 import { CornerCoder } from "@/components/corner-coder";
+import { apiFetch } from '@/services/api';
 
 const labelOngoingTitle = "\u00DCzerinde \u00C7al\u0131\u015Ft\u0131\u011F\u0131m Projeler";
 const labelOngoingDesc = "Tamamlanma y\u00FCzdesi ile g\u00FCncel durum";
@@ -18,7 +19,6 @@ const labelExperienceTitle = "Deneyim Zaman \u00C7izelgesi";
 const labelSelectedProjectsTitle = "Se\u00E7ili Projeler";
 
 export default async function HomePage() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
   let errorMessage: string | null = null;
 
   type Experience = {
@@ -51,8 +51,8 @@ export default async function HomePage() {
   let postsFromApi: Post[] = [];
   try {
     const [homeRes, postsRes] = await Promise.all([
-      fetch(`${apiUrl}/api/home`, { cache: "no-store" }),
-      fetch(`${apiUrl}/api/posts`, { cache: "no-store" })
+      apiFetch('/api/home'),
+      apiFetch('/api/posts')
     ]);
     if (homeRes.ok) data = await homeRes.json();
     if (postsRes.ok) postsFromApi = await postsRes.json();

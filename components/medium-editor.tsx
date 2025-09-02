@@ -1,5 +1,6 @@
 "use client"
 import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { apiFetch } from '@/services/api'
 import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
@@ -78,11 +79,10 @@ export function MediumEditor({ value = '', onChange, minHeight = 320 }: Props) {
   }, [value, editor])
 
   const uploadImage = useCallback(async (file: File) => {
-    const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'
     const fd = new FormData()
     fd.append('file', file)
     const token = getToken()
-    const res = await fetch(`${base}/api/upload/image`, {
+    const res = await apiFetch('/api/upload/image', {
       method: 'POST',
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       body: fd,

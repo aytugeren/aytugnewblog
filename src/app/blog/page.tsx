@@ -2,9 +2,9 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { SiteNavbar } from "../components/site-navbar";
+import { apiFetch } from '@/services/api';
 
 export default function BlogList() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
   const [q, setQ] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [apiPosts, setApiPosts] = useState<Array<{ title: string; date: string; summary: string; slug: string; tags?: string[] }>>([]);
@@ -14,7 +14,7 @@ export default function BlogList() {
     let ignore = false;
     (async () => {
       try {
-        const res = await fetch(`${apiUrl}/api/posts`, { cache: "no-store" });
+        const res = await apiFetch('/api/posts');
           console.log("Fetched API posts:", res);
         if (res.ok) {
           const data = await res.json();
@@ -38,7 +38,7 @@ export default function BlogList() {
     return () => {
       ignore = true;
     };
-  }, [apiUrl]);
+  }, []);
 
   const posts = useMemo(() => {
     const base = apiPosts

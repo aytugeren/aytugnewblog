@@ -1,10 +1,10 @@
 "use client"
 import { useEffect, useState } from 'react'
+import { apiFetch } from '@/services/api'
 
 type Post = { id: string; title: string; date: string; summary: string; slug: string; tags?: string[] }
 
 export default function AdminPostsPage() {
-  const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'
   const [posts, setPosts] = useState<Post[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -14,7 +14,7 @@ export default function AdminPostsPage() {
       setLoading(true)
       setError(null)
       try {
-        const res = await fetch(`${base}/api/posts`, { cache: 'no-store' })
+        const res = await apiFetch('/api/posts')
         if (!res.ok) throw new Error('Postlar alınamadı')
         const data = await res.json()
         setPosts(Array.isArray(data) ? data : [])
@@ -24,7 +24,7 @@ export default function AdminPostsPage() {
         setLoading(false)
       }
     })()
-  }, [base])
+  }, [])
 
   return (
     <div className="space-y-4">
