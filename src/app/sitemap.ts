@@ -1,17 +1,36 @@
-import { allPosts } from ".contentlayer/generated"; // veya "contentlayer/generated"
+import { allPosts } from "contentlayer/generated";
 import { MetadataRoute } from "next";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const base = "https://senin-domainin.com"; // 👉 burayı kendi domaininle değiştir
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-  const posts = allPosts.map((post) => ({
-    url: `${base}/blog/${post.slug}`,
-    lastModified: post.date,
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const base = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+  const apiBase = (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000").replace(/\/$/, "");
+
+  type P = { slug: string; date: string; published?: boolean };
+  let posts: P[] | null = null;
+  try {
+    const res = await fetch(`${apiBase}/api/posts`, { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) posts = data as P[];
+    }
+  } catch { /* ignore */ }
+
+  const list: P[] = posts ?? allPosts.map((p) => ({ slug: p.slug, date: String(p.date), published: (p as any).published }))
+    .filter((p) => p.published !== false)
+    .sort((a, b) => +new Date(a.date) < +new Date(b.date) ? 1 : -1);
+
+  const postEntries: MetadataRoute.Sitemap = list.map((p) => ({
+    url: `${base}/blog/${p.slug}`,
+    lastModified: p.date,
   }));
 
   return [
     { url: base, lastModified: new Date() },
     { url: `${base}/blog`, lastModified: new Date() },
-    ...posts,
+    { url: `${base}/projects`, lastModified: new Date() },
+    ...postEntries,
   ];
 }

@@ -130,7 +130,7 @@ export default function BlogList() {
             const d = new Date(p.date);
             const formatted = isNaN(d.valueOf())
               ? ""
-              : new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium" }).format(d);
+              : new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeZone: "UTC" }).format(d);
             return (
               <Link
                 key={p.slug}

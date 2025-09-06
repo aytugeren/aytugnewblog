@@ -14,10 +14,14 @@
       "console": "integratedTerminal",
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ASPNETCORE_URLS": "http://localhost:5000"
-        // Optionally set DB envs if needed:
-        // "MONGO_CONNECTION_STRING": "mongodb://localhost:27017",
-        // "MONGO_DB_NAME": "aytugdb"
+        "ASPNETCORE_URLS": "http://localhost:5000",
+        "MONGO_CONNECTION_STRING":"mongodb://127.0.0.1:27017",
+        "MONGO_DB_NAME":"aytugdb",
+        "JWT_SECRET":"6cac45a7e321c75ae9bc981e9af961a9",
+        "JWT_ISSUER":"aytug-blog",
+        "JWT_AUDIENCE":"aytug-blog",
+        "CACHE_TTL_HOME_SECONDS":"300",
+        "CACHE_TTL_POSTS_SECONDS":"300"
       },
       "justMyCode": true
     }

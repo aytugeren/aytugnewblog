@@ -10,6 +10,7 @@ import { PostListItem } from "@/components/post-list-item";
 import { Entrance3D } from "@/components/entrance-3d";
 import { CodeBackground } from "./components/codebackground";
 import { CornerCoder } from "@/components/corner-coder";
+import { ContactForm } from "./components/contact-form";
 
 const labelOngoingTitle = "\u00DCzerinde \u00C7al\u0131\u015Ft\u0131\u011F\u0131m Projeler";
 const labelOngoingDesc = "Tamamlanma y\u00FCzdesi ile g\u00FCncel durum";
@@ -49,13 +50,19 @@ export default async function HomePage() {
   } = { skills: {}, experiences: [], projects: [], posts: [], hasCv: false, ongoingProjects: [] };
 
   let postsFromApi: Post[] = [];
+  let contactCount = 0 as number;
   try {
-    const [homeRes, postsRes] = await Promise.all([
+    const [homeRes, postsRes, contactCountRes] = await Promise.all([
       fetch(`${apiUrl}/api/home`, { cache: "no-store" }),
-      fetch(`${apiUrl}/api/posts`, { cache: "no-store" })
+      fetch(`${apiUrl}/api/posts`, { cache: "no-store" }),
+      fetch(`${apiUrl}/api/contact/count`, { cache: "no-store" })
     ]);
     if (homeRes.ok) data = await homeRes.json();
     if (postsRes.ok) postsFromApi = await postsRes.json();
+    if (contactCountRes.ok) {
+      const j = await contactCountRes.json();
+      contactCount = Number(j?.count ?? 0) || 0;
+    }
   } catch (err) {
     console.error("Failed to fetch data", err);
     errorMessage = "Failed to load data. Showing default content.";
@@ -196,7 +203,7 @@ export default async function HomePage() {
             <Section id="contact" title={"\u0130leti\u015Fim"}>
               <div className="space-y-6">
                 <a href="mailto:aytug@example.com" className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">Email Gönder</a>
-                <form className="grid gap-4 sm:grid-cols-2">
+                <form className="hidden grid gap-4 sm:grid-cols-2">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium leading-none">Ad</label>
                     <input id="name" type="text" className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary" />
@@ -213,6 +220,8 @@ export default async function HomePage() {
                     <button type="button" disabled className="inline-flex items-center rounded-md border border-input bg-muted px-4 py-2 text-sm font-medium text-muted-foreground">Gönder</button>
                   </div>
                 </form>
+                <ContactForm />
+                <p className="text-sm text-muted-foreground">{"Toplam talep say\u0131s\u0131: "}{contactCount}</p>
               </div>
             </Section>
           </main>

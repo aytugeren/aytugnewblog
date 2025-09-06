@@ -107,3 +107,24 @@ public class CvDownload
     public DateTime FirstDownloaded { get; set; }
     public DateTime? LastDownloaded { get; set; }
 }
+
+// Contact messages
+public record ContactRequest(
+    string Name,
+    string Email,
+    string Message,
+    string? Hp = null,
+    long? Ts = null
+);
+
+public class ContactMessage
+{
+    [BsonId]
+    public ObjectId Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public string? Ip { get; set; }
+    public string? UserAgent { get; set; }
+}

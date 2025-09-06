@@ -16,6 +16,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               <a className="underline" href="/admin/home">Home JSON</a>
               <a className="underline" href="/admin/home/form">Home Form</a>
               <a className="underline" href="/admin/posts">Postlar</a>
+              <a className="underline" href="/admin/contact">İletişim</a>
               <a className="px-3 py-1 rounded border" href="/">Siteye Git</a>
             </nav>
           </div>

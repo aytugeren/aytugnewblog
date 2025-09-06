@@ -1,6 +1,6 @@
 "use client"
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useMemo, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
 import { MediumEditor } from '@/components/medium-editor'
 
 function getToken(): string | null {
@@ -12,37 +12,64 @@ function slugify(input: string): string {
   if (!input) return 'post'
   let s = input.toLowerCase().trim()
   const map: Record<string, string> = {
-    'ğ': 'g', 'Ğ': 'g',
-    'ü': 'u', 'Ü': 'u',
-    'ş': 's', 'Ş': 's',
-    'ı': 'i', 'İ': 'i',
-    'ö': 'o', 'Ö': 'o',
-    'ç': 'c', 'Ç': 'c',
-  }
-  s = s.replace(/[ğĞüÜşŞıİöÖçÇ]/g, ch => (map as any)[ch] || ch)
-       .replace(/[^a-z0-9\s-]/g, '')
-       .replace(/[\s-]+/g, '-')
-       .replace(/^-+|-+$/g, '')
+    ç: 'c', Ç: 'c', ğ: 'g', Ğ: 'g', ı: 'i', İ: 'i', ö: 'o', Ö: 'o', ş: 's', Ş: 's', ü: 'u', Ü: 'u',
+  } as any
+  s = s
+    .split('')
+    .map((ch) => (map as any)[ch] ?? ch)
+    .join('')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/[\s-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
   return s || 'post'
 }
 
-export default function NewPostPage() {
+export default function EditPostPage() {
   const router = useRouter()
+  const params = useParams<{ key: string }>()
+  const slugParam = useMemo(() => decodeURIComponent(String(params?.key ?? '')), [params])
   const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'
-  const today = new Date().toISOString().slice(0, 10)
 
+  const [id, setId] = useState<string | null>(null)
   const [title, setTitle] = useState('')
-  const [date, setDate] = useState(today)
+  const [date, setDate] = useState('')
   const [summary, setSummary] = useState('')
   const [slug, setSlug] = useState('')
   const [tags, setTags] = useState('')
   const [published, setPublished] = useState(true)
   const [body, setBody] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
 
   const autoSlug = () => setSlug(slugify(title))
+
+  useEffect(() => {
+    ;(async () => {
+      if (!slugParam) return
+      setLoading(true)
+      setError(null)
+      setMsg(null)
+      try {
+        const res = await fetch(`${base}/api/posts/${encodeURIComponent(slugParam)}`, { cache: 'no-store' })
+        if (res.status === 404) throw new Error('Yazı bulunamadı')
+        if (!res.ok) throw new Error('Post yüklenemedi')
+        const p = await res.json()
+        setId(p.id ?? null)
+        setTitle(p.title ?? p.Title ?? '')
+        setDate(p.date ?? p.Date ?? '')
+        setSummary(p.summary ?? p.Summary ?? '')
+        setSlug(p.slug ?? p.Slug ?? '')
+        setTags(Array.isArray(p.tags ?? p.Tags) ? (p.tags ?? p.Tags).join(', ') : '')
+        setBody(p.body ?? p.Body ?? '')
+        setPublished(Boolean(p.published ?? p.Published ?? true))
+      } catch (e: any) {
+        setError(e.message || 'Hata')
+      } finally {
+        setLoading(false)
+      }
+    })()
+  }, [base, slugParam])
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,23 +79,24 @@ export default function NewPostPage() {
     try {
       const token = getToken()
       if (!token) throw new Error('Oturum bulunamadı')
+      if (!id) throw new Error('Geçersiz yazı')
       const payload = {
         title,
         date,
         summary,
         slug: slug || slugify(title),
-        tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+        tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
         body,
         published,
       }
-      const res = await fetch(`${base}/api/posts`, {
-        method: 'POST',
+      const res = await fetch(`${base}/api/posts/${encodeURIComponent(id)}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),
       })
       if (res.status === 409) throw new Error('Slug zaten mevcut')
-      if (!res.ok) throw new Error('Kayıt başarısız')
-      setMsg('Oluşturuldu')
+      if (!res.ok) throw new Error('Güncelleme başarısız')
+      setMsg('Güncellendi')
       router.replace('/admin/posts')
     } catch (e: any) {
       setError(e.message || 'Hata')
@@ -80,11 +108,12 @@ export default function NewPostPage() {
   return (
     <form onSubmit={submit} className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Yeni Yazı</h1>
+        <h1 className="text-2xl font-semibold">Yazıyı Düzenle</h1>
         <div className="flex gap-2">
           <button type="submit" disabled={loading} className="px-3 py-1 rounded bg-blue-600 text-white disabled:opacity-50">Kaydet</button>
         </div>
       </div>
+      {loading && <p className="text-sm text-gray-500">Yükleniyor…</p>}
       {(error || msg) && (<p className={error ? 'text-red-500 text-sm' : 'text-green-500 text-sm'}>{error || msg}</p>)}
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -99,7 +128,7 @@ export default function NewPostPage() {
         <div className="space-y-1">
           <label className="text-sm">Slug</label>
           <div className="flex gap-2">
-            <input className="w-full border rounded px-3 py-2 bg-transparent" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder={"otomatik üretmek için boş bırakın"} />
+            <input className="w-full border rounded px-3 py-2 bg-transparent" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder={'otomatik üretmek için boş bırakın'} />
             <button type="button" className="px-3 py-1 border rounded" onClick={autoSlug}>Otomatik</button>
           </div>
         </div>
@@ -127,5 +156,4 @@ export default function NewPostPage() {
     </form>
   )
 }
-
 
