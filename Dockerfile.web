@@ -1,23 +1,28 @@
 # Next.js (production) multi-stage image
-FROM node:20-alpine AS deps
+FROM node:20-bullseye-slim AS deps
 WORKDIR /app
 # Enable corepack to use pnpm and allow lifecycle scripts (esbuild, contentlayer, sharp)
 RUN corepack enable
 ENV PNPM_ENABLE_PRE_POST_SCRIPTS=true \
-    PNPM_ALLOW_SCRIPTS=*
+    PNPM_ALLOW_SCRIPTS=* \
+    NEXT_TELEMETRY_DISABLED=1
 COPY package.json pnpm-lock.yaml* ./
 RUN pnpm install --frozen-lockfile
 
-FROM node:20-alpine AS builder
+FROM node:20-bullseye-slim AS builder
 WORKDIR /app
-ENV NODE_ENV=production
+ENV NODE_ENV=production \
+    NODE_OPTIONS=--max-old-space-size=2048 \
+    PNPM_ENABLE_PRE_POST_SCRIPTS=true \
+    PNPM_ALLOW_SCRIPTS=* \
+    NEXT_TELEMETRY_DISABLED=1
 RUN corepack enable
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Build Next.js app
 RUN pnpm build
 
-FROM node:20-alpine AS runner
+FROM node:20-bullseye-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 # Prevent Next telemetry in container
