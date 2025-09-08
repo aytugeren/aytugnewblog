@@ -1,0 +1,15 @@
+# Prevent huge contexts and broken installs
+node_modules
+.next
+.git
+.gitignore
+.vscode
+.DS_Store
+.contentlayer
+docker-compose.yml
+deploy
+_tmp_page.txt
+_snapshot_admin_posts_page.txt
+_dump_page.ts
+_block.txt
+_skillsblock.txt
