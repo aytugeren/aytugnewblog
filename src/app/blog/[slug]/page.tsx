@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { SiteNavbar } from "../../components/site-navbar";
 import { Mdx } from "../../components/mdx";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
@@ -156,6 +158,7 @@ export default async function PostPage(
   );
 }
 
-export async function generateStaticParams() {
-  return allPosts.map(p => ({ slug: p.slug }));
-}
+// Disable pre-rendering of dynamic blog routes to avoid build-time SSR issues
+// export async function generateStaticParams() {
+//   return allPosts.map(p => ({ slug: p.slug }));
+// }
