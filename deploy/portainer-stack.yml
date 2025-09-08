@@ -35,6 +35,11 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile.web
+      args:
+        PNPM_ALLOW_SCRIPTS: "*"
+        PNPM_ENABLE_PRE_POST_SCRIPTS: "true"
+        NEXT_TELEMETRY_DISABLED: "1"
+        NODE_OPTIONS: "--max-old-space-size=2048"
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -61,4 +66,3 @@ services:
 volumes:
   mongo-data:
   generated-posts:
-
