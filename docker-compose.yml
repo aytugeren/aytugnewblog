@@ -1,23 +1,56 @@
-version: '3.8'
+version: "3.8"
+
 services:
   mongo:
     image: mongo:7
     restart: unless-stopped
-    ports:
-      - "27017:27017"
     volumes:
       - mongo-data:/data/db
+
   backend:
-    build: ./backend
-    ports:
-      - "5000:8080"
+    build:
+      context: ../backend
+    restart: unless-stopped
     environment:
+      ASPNETCORE_URLS: http://+:8080
       MONGO_CONNECTION_STRING: mongodb://mongo:27017
       MONGO_DB_NAME: aytugdb
+      # Writes new/updated post JSON here so web can serve it
+      JSON_DIR: /app/public/generated/post
+      # Optional: where to mirror MDX files inside the container
       CONTENT_DIR: /app/content/posts
+      # Provide real secrets via Portainer UI or env vars
+      # JWT_SECRET: "change-me"
+      # JWT_ISSUER: "aytug-blog"
+      # JWT_AUDIENCE: "aytug-blog"
+      # ADMIN_USER: "admin"
+      # ADMIN_PASS: "strong-password"
     depends_on:
       - mongo
     volumes:
-      - ./content:/app/content
+      - ../content:/app/content
+      - generated-posts:/app/public/generated/post
+
+  web:
+    build:
+      context: ..
+      dockerfile: Dockerfile.web
+      args:
+        PNPM_ALLOW_SCRIPTS: "*"
+        PNPM_ENABLE_PRE_POST_SCRIPTS: "true"
+        NEXT_TELEMETRY_DISABLED: "1"
+        NODE_OPTIONS: "--max-old-space-size=2048"
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      # Use same-origin API via Nginx at /api
+      NEXT_PUBLIC_API_BASE_URL: /api
+    depends_on:
+      - backend
+    volumes:
+      # Share generated post JSON so Next can serve it at runtime
+      - generated-posts:/app/public/generated/post:ro
+
 volumes:
   mongo-data:
+  generated-posts:
