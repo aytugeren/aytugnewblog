@@ -15,9 +15,12 @@ ENV NODE_ENV=production \
     NPM_CONFIG_LEGACY_PEER_DEPS=true
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+RUN npm install --force
 # Build Next.js app
+RUN npx --yes contentlayer build || npx --yes contentlayer@0.3.4 build
 RUN npm run build
-RUN npm prune --omit=dev
+
 
 FROM node:20 AS runner
 WORKDIR /app
