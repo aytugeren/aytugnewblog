@@ -29,7 +29,8 @@ services:
       # ADMIN_PASS: "strong-password"
     depends_on:
       - mongo
-    # No external port needed when using the proxy
+    ports:
+      - "4001:8080"
     volumes:
       - ../content:/app/content
       - generated-posts:/app/public/generated/post
@@ -46,21 +47,13 @@ services:
       NEXT_PUBLIC_API_BASE_URL: /api
     depends_on:
       - backend
-    # No external port; served via proxy
+    ports:
+      - "4000:3000"
     volumes:
       # Share generated post JSON so Next can serve it at runtime
       - generated-posts:/app/public/generated/post:ro
 
-  proxy:
-    image: nginx:1.27-alpine
-    restart: unless-stopped
-    depends_on:
-      - web
-      - backend
-    ports:
-      - "4000:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+  # No built-in proxy; use your Nginx Proxy Manager
 
 volumes:
   mongo-data:
