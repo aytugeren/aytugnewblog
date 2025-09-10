@@ -21,12 +21,12 @@ services:
       JSON_DIR: /app/public/generated/post
       # Optional: where to mirror MDX files inside the container
       CONTENT_DIR: /app/content/posts
-      # Provide real secrets via Portainer UI or env vars
-      # JWT_SECRET: "change-me"
-      # JWT_ISSUER: "aytug-blog"
-      # JWT_AUDIENCE: "aytug-blog"
-      # ADMIN_USER: "admin"
-      # ADMIN_PASS: "strong-password"
+      # JWT + Admin auth (set these in Portainer)
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER:-aytug-blog}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-aytug-blog}
+      ADMIN_USER: ${ADMIN_USER}
+      ADMIN_PASS: ${ADMIN_PASS}
     depends_on:
       - mongo
     ports:
@@ -39,12 +39,18 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile.web
+      args:
+        NEXT_PUBLIC_API_BASE_URL: /api
+        NEXT_PUBLIC_SITE_URL: http://161.97.97.216:4000
       # No PNPM; Dockerfile handles npm and env
     restart: unless-stopped
     environment:
       NODE_ENV: production
       # Use same-origin API via Nginx at /api
       NEXT_PUBLIC_API_BASE_URL: /api
+      NEXT_PUBLIC_SITE_URL: http://161.97.97.216:4000
+      # Server-side only (not exposed to client)
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
     depends_on:
       - backend
     ports:

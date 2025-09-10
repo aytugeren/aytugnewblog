@@ -9,7 +9,9 @@ import { TurkishNormalizer } from "./components/turkish-normalizer";
 export const metadata: Metadata = {
   title: "Aytu\u011F Y \u2014 Blog",
   description: "Senior developer showcase + blog",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  ...(process.env.NEXT_PUBLIC_SITE_URL
+    ? { metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL as string) }
+    : {}),
   alternates: {
     canonical: "/",
     types: {

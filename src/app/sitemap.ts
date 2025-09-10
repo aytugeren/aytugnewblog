@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+  const base = (process.env.NEXT_PUBLIC_SITE_URL as string).replace(/\/$/, "");
   const apiBase = (process.env.NEXT_PUBLIC_API_BASE_URL as string).replace(/\/$/, "");
 
   type P = { slug: string; date: string; published?: boolean };
