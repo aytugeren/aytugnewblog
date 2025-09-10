@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../../contentlayer.config.ts"],
-  "sourcesContent": ["import { defineDocumentType, makeSource } from \"contentlayer/source-files\";\r\n\r\nexport const Post = defineDocumentType(() => ({\r\n  name: \"Post\",\r\n  filePathPattern: `posts/**/*.mdx`,\r\n  contentType: \"mdx\",\r\n  fields: {\r\n    title: { type: \"string\", required: true },\r\n    date: { type: \"date\", required: true },\r\n    summary: { type: \"string\", required: true },\r\n    tags: { type: \"list\", of: { type: \"string\" } },\r\n    published: { type: \"boolean\", default: true },\r\n  },\r\n  computedFields: {\r\n    slug: {\r\n      type: \"string\",\r\n      resolve: (doc) => doc._raw.flattenedPath.replace(\"posts/\", \"\"),\r\n    },\r\n  },\r\n}));\r\n\r\nexport default makeSource({\r\n  contentDirPath: \"content\",\r\n  documentTypes: [Post],\r\n});\r\n"],
-  "mappings": ";AAAA,SAAS,oBAAoB,kBAAkB;AAExC,IAAM,OAAO,mBAAmB,OAAO;AAAA,EAC5C,MAAM;AAAA,EACN,iBAAiB;AAAA,EACjB,aAAa;AAAA,EACb,QAAQ;AAAA,IACN,OAAO,EAAE,MAAM,UAAU,UAAU,KAAK;AAAA,IACxC,MAAM,EAAE,MAAM,QAAQ,UAAU,KAAK;AAAA,IACrC,SAAS,EAAE,MAAM,UAAU,UAAU,KAAK;AAAA,IAC1C,MAAM,EAAE,MAAM,QAAQ,IAAI,EAAE,MAAM,SAAS,EAAE;AAAA,IAC7C,WAAW,EAAE,MAAM,WAAW,SAAS,KAAK;AAAA,EAC9C;AAAA,EACA,gBAAgB;AAAA,IACd,MAAM;AAAA,MACJ,MAAM;AAAA,MACN,SAAS,CAAC,QAAQ,IAAI,KAAK,cAAc,QAAQ,UAAU,EAAE;AAAA,IAC/D;AAAA,EACF;AACF,EAAE;AAEF,IAAO,8BAAQ,WAAW;AAAA,EACxB,gBAAgB;AAAA,EAChB,eAAe,CAAC,IAAI;AACtB,CAAC;",
-  "names": []
-}

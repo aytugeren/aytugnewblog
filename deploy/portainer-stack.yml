@@ -35,11 +35,7 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile.web
-      args:
-        PNPM_ALLOW_SCRIPTS: "*"
-        PNPM_ENABLE_PRE_POST_SCRIPTS: "true"
-        NEXT_TELEMETRY_DISABLED: "1"
-        NODE_OPTIONS: "--max-old-space-size=2048"
+      # No PNPM; Dockerfile handles npm and env
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -50,18 +46,6 @@ services:
     volumes:
       # Share generated post JSON so Next can serve it at runtime
       - generated-posts:/app/public/generated/post:ro
-
-  proxy:
-    image: nginx:alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      # For HTTPS, put this behind a TLS proxy (Traefik/Caddy) or terminate TLS here
-    depends_on:
-      - web
-      - backend
-    volumes:
-      - ../nginx.conf:/etc/nginx/conf.d/default.conf:ro
 
 volumes:
   mongo-data:
