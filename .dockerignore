@@ -1,5 +1,6 @@
 node_modules
 .next
+.contentlayer
 npm-debug.log*
 pnpm-lock.yaml
 .git
@@ -7,6 +8,8 @@ pnpm-lock.yaml
 Dockerfile
 Dockerfile.*
 deploy
+backend/bin
+backend/obj
 **/*.log
 **/.DS_Store
 **/Thumbs.db
