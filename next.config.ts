@@ -1,4 +1,4 @@
-import { withContentlayer } from "next-contentlayer2";
+import { withContentlayer } from "next-contentlayer";
 
 const nextConfig = {
   experimental: { optimizePackageImports: ["lucide-react"] },
