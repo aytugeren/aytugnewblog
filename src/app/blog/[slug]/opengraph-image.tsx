@@ -1,17 +1,25 @@
 import { ImageResponse } from "next/og";
-import { allPosts } from ".contentlayer/generated";
 
 export const runtime = "edge";
-export const size = { width: 1200, height: 630 };
+export const size = { width: 1200, height: 630 } as const;
 export const contentType = "image/png";
 
 export default async function OgImage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5000";
 
-  const post = allPosts.find(p => p.slug === slug);
-  const title = post?.title ?? "Yazı bulunamadı";
-  const summary = post?.summary ?? "";
-  const dateStr = post?.date ?? "";
+  let title = "Yazı bulunamadı";
+  let summary = "";
+  let dateStr = "";
+  try {
+    const res = await fetch(`${apiUrl}/api/posts/${slug}`, { cache: "no-store" });
+    if (res.ok) {
+      const p = await res.json();
+      title = p.title ?? title;
+      summary = p.summary ?? "";
+      dateStr = p.date ?? "";
+    }
+  } catch { /* ignore */ }
 
   return new ImageResponse(
     (
@@ -39,35 +47,35 @@ export default async function OgImage({ params }: { params: Promise<{ slug: stri
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-        <div
-        style={{
-            fontSize: 64,
-            fontWeight: 800,
-            lineHeight: 1.1,
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-        }}
-        >
-        {title}
-        </div>
-        {summary ? (
-        <div
-        style={{
-            fontSize: 28,
-            opacity: 0.85,
-            maxWidth: 950,
-            lineHeight: 1.35,
-            display: "-webkit-box",
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-        }}
-        >
-        {summary}
-        </div>
-        ) : null}
+          <div
+            style={{
+              fontSize: 64,
+              fontWeight: 800,
+              lineHeight: 1.1,
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
+            {title}
+          </div>
+          {summary ? (
+            <div
+              style={{
+                fontSize: 28,
+                opacity: 0.85,
+                maxWidth: 950,
+                lineHeight: 1.35,
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {summary}
+            </div>
+          ) : null}
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -81,7 +89,7 @@ export default async function OgImage({ params }: { params: Promise<{ slug: stri
               border: "1px solid rgba(139,92,246,0.45)",
             }}
           >
-            nextjs • mdx • tailwind
+            nextjs • api • tailwind
           </div>
         </div>
       </div>
@@ -89,3 +97,4 @@ export default async function OgImage({ params }: { params: Promise<{ slug: stri
     { ...size }
   );
 }
+

@@ -18,7 +18,6 @@ COPY . .
 
 RUN npm install --force
 # Build Next.js app
-RUN npx --yes contentlayer build || npx --yes contentlayer@0.3.4 build
 RUN npm run build
 
 

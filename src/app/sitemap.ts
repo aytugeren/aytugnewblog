@@ -1,4 +1,3 @@
-import { allPosts } from "contentlayer/generated";
 import { MetadataRoute } from "next";
 
 export const dynamic = "force-dynamic";
@@ -9,18 +8,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const apiBase = (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000").replace(/\/$/, "");
 
   type P = { slug: string; date: string; published?: boolean };
-  let posts: P[] | null = null;
+  let list: P[] = [];
   try {
     const res = await fetch(`${apiBase}/api/posts`, { cache: "no-store" });
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data)) posts = data as P[];
+      if (Array.isArray(data)) {
+        list = (data as P[])
+          .filter((p) => p.published !== false)
+          .sort((a, b) => +new Date(a.date) < +new Date(b.date) ? 1 : -1);
+      }
     }
   } catch { /* ignore */ }
-
-  const list: P[] = posts ?? allPosts.map((p) => ({ slug: p.slug, date: String(p.date), published: (p as any).published }))
-    .filter((p) => p.published !== false)
-    .sort((a, b) => +new Date(a.date) < +new Date(b.date) ? 1 : -1);
 
   const postEntries: MetadataRoute.Sitemap = list.map((p) => ({
     url: `${base}/blog/${p.slug}`,

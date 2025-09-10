@@ -1,5 +1,3 @@
-import { allPosts } from "contentlayer/generated";
-
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -9,21 +7,20 @@ export async function GET() {
 
   type P = { title: string; date: string; summary?: string; slug: string; tags?: string[]; published?: boolean };
 
-  let posts: P[] | null = null;
+  let list: P[] = [];
   try {
     const res = await fetch(`${apiBase}/api/posts`, { cache: "no-store" });
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data)) posts = data as P[];
+      if (Array.isArray(data)) {
+        list = (data as P[])
+          .filter((p) => p.published !== false)
+          .sort((a, b) => +new Date(a.date) < +new Date(b.date) ? 1 : -1);
+      }
     }
   } catch {
-    // ignore and fallback
+    // ignore
   }
-
-  // Fallback to contentlayer if API is not available
-  const list: P[] = posts ?? allPosts.map((p) => ({ title: p.title, date: String(p.date), summary: p.summary, slug: p.slug, tags: p.tags, published: (p as any).published }))
-    .filter((p) => p.published !== false)
-    .sort((a, b) => +new Date(a.date) < +new Date(b.date) ? 1 : -1);
 
   const items = list
     .map(
