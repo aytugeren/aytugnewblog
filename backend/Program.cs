@@ -157,6 +157,53 @@ app.MapPost("/api/home/upsert", async (IMongoDatabase db, [FromBody] HomeUpsertR
     }
 }).RequireAuthorization();
 
+// Upload CV (PDF). Saves to a fixed path inside backend container. Auth required.
+app.MapPost("/api/upload/cv", async (HttpRequest request) =>
+{
+    if (!request.HasFormContentType)
+        return Results.BadRequest("multipart/form-data bekleniyor");
+
+    var form = await request.ReadFormAsync();
+    var file = form.Files["file"];
+    if (file is null || file.Length == 0)
+        return Results.BadRequest("dosya yok");
+
+    // Basic validation: PDF up to ~20MB
+    if (file.ContentType is not null && !file.ContentType.Contains("pdf", StringComparison.OrdinalIgnoreCase))
+        return Results.BadRequest("PDF bekleniyor");
+    const long maxSize = 20 * 1024 * 1024;
+    if (file.Length > maxSize)
+        return Results.BadRequest("dosya boyutu buyuk");
+
+    var targetPath = Environment.GetEnvironmentVariable("CV_PATH");
+    if (string.IsNullOrWhiteSpace(targetPath))
+    {
+        // Default within app folder; Next.js will proxy via /cv.pdf route
+        targetPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "cv.pdf"));
+    }
+    var dir = Path.GetDirectoryName(targetPath);
+    if (!string.IsNullOrWhiteSpace(dir)) Directory.CreateDirectory(dir);
+
+    using (var fs = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None))
+    {
+        await file.CopyToAsync(fs);
+    }
+
+    return Results.Ok(new { ok = true, saved = targetPath });
+}).RequireAuthorization();
+
+// Serve CV PDF (public). Streams file saved by /api/upload/cv
+app.MapGet("/api/files/cv", () =>
+{
+    var targetPath = Environment.GetEnvironmentVariable("CV_PATH");
+    if (string.IsNullOrWhiteSpace(targetPath))
+        targetPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "cv.pdf"));
+    if (!System.IO.File.Exists(targetPath))
+        return Results.NotFound();
+    var stream = new FileStream(targetPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+    return Results.File(stream, "application/pdf", enableRangeProcessing: true);
+});
+
 app.MapGet("/api/posts", (IMongoDatabase db) =>
 {
     var col = db.GetCollection<Post>("posts");
