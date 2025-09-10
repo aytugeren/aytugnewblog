@@ -17,7 +17,7 @@ function getToken(): string | null {
 }
 
 export default function AdminContactPage() {
-  const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL as string
   const [items, setItems] = useState<Contact[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -132,4 +132,3 @@ export default function AdminContactPage() {
     </div>
   )
 }
-

@@ -2,11 +2,7 @@
 import { useState } from 'react'
 
 export function ContactForm() {
-  const base =
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    process.env.NEXT_PUBLIC_API_BASE ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    'http://localhost:5000'
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL as string
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')

@@ -38,11 +38,7 @@ export default function AdminHomeDataPage() {
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
 
-  const base =
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    process.env.NEXT_PUBLIC_API_BASE ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    'http://localhost:5000'
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL as string
 
   useEffect(() => {
     refresh()

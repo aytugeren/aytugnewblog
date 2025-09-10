@@ -8,11 +8,7 @@ export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
   const { slug } = await params;
-  const apiUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL ??
-    process.env.NEXT_PUBLIC_API_BASE ??
-    process.env.NEXT_PUBLIC_API_URL ??
-    "http://localhost:5000";
+  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL as string;
   try {
     const res = await fetch(`${apiUrl}/api/posts/${slug}`, { cache: "no-store" });
     if (res.ok) {
@@ -27,11 +23,7 @@ export default async function PostPage(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
-  const apiBase =
-    process.env.NEXT_PUBLIC_API_BASE_URL ??
-    process.env.NEXT_PUBLIC_API_BASE ??
-    process.env.NEXT_PUBLIC_API_URL ??
-    "http://localhost:5000";
+  const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL as string;
   try {
     const res = await fetch(`${apiBase}/api/posts/${slug}`, { cache: "no-store" });
     if (!res.ok) return notFound();

@@ -78,7 +78,7 @@ export function MediumEditor({ value = '', onChange, minHeight = 320 }: Props) {
   }, [value, editor])
 
   const uploadImage = useCallback(async (file: File) => {
-    const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'
+    const base = process.env.NEXT_PUBLIC_API_BASE_URL as string
     const fd = new FormData()
     fd.append('file', file)
     const token = getToken()

@@ -21,10 +21,7 @@ const labelSelectedProjectsTitle = "Se\u00E7ili Projeler";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-    ?? process.env.NEXT_PUBLIC_API_BASE
-    ?? process.env.NEXT_PUBLIC_API_URL
-    ?? "http://localhost:5000";
+  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL as string;
   let errorMessage: string | null = null;
 
   type Experience = {

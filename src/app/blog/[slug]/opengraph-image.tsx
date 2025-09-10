@@ -6,11 +6,7 @@ export const contentType = "image/png";
 
 export default async function OgImage({ params }: { params: { slug: string } }) {
   const { slug } = params;
-  const apiUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL ??
-    process.env.NEXT_PUBLIC_API_BASE ??
-    process.env.NEXT_PUBLIC_API_URL ??
-    "http://localhost:5000";
+  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL as string;
 
   let title = "Yazı bulunamadı";
   let summary = "";
@@ -106,4 +102,3 @@ export default async function OgImage({ params }: { params: { slug: string } }) 
     { ...size }
   );
 }
-
