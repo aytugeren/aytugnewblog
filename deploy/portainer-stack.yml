@@ -6,6 +6,8 @@ services:
     restart: unless-stopped
     volumes:
       - mongo-data:/data/db
+    ports:
+      - "27017:27017" # Optional: expose MongoDB for local access
 
   backend:
     build:
@@ -27,6 +29,8 @@ services:
       # ADMIN_PASS: "strong-password"
     depends_on:
       - mongo
+    ports:
+      - "4001:4001"
     volumes:
       - ../content:/app/content
       - generated-posts:/app/public/generated/post
@@ -43,6 +47,8 @@ services:
       NEXT_PUBLIC_API_BASE_URL: /api
     depends_on:
       - backend
+    ports:
+      - "4000:4000"
     volumes:
       # Share generated post JSON so Next can serve it at runtime
       - generated-posts:/app/public/generated/post:ro
