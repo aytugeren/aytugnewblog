@@ -46,3 +46,4 @@ next-env.d.ts
 backend/bin/
 backend/obj/
 backend/home.db
+package-lock.json
