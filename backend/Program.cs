@@ -66,19 +66,32 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-// CORS: allow Next.js dev server on localhost:3000
-const string CorsPolicy = "AllowLocal3000";
+// CORS: allow configurable origins (IP/domain) + localhost by default
+const string CorsPolicy = "DefaultCors";
+var corsEnv = Environment.GetEnvironmentVariable("CORS_ORIGINS");
+var defaultOrigins = new[]
+{
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    // Common deployments (adjustable via CORS_ORIGINS)
+    "http://161.97.97.216:4000",
+    "http://aytugeren.com",
+    "https://aytugeren.com",
+    "http://www.aytugeren.com",
+    "https://www.aytugeren.com",
+};
+var origins = string.IsNullOrWhiteSpace(corsEnv)
+    ? defaultOrigins
+    : corsEnv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: CorsPolicy, policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:3000",
-                "http://127.0.0.1:3000"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-            // .AllowCredentials(); // enable if sending cookies/auth
+        policy.WithOrigins(origins)
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+              // .AllowCredentials(); // enable if sending cookies/auth
     });
 });
 

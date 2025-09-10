@@ -17,6 +17,8 @@ services:
       ASPNETCORE_URLS: http://+:8080
       MONGO_CONNECTION_STRING: mongodb://mongo:27017
       MONGO_DB_NAME: aytugdb
+      # CORS origins (comma-separated). Override in Portainer if needed.
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://161.97.97.216:4000,http://aytugeren.com,https://aytugeren.com,http://www.aytugeren.com,https://www.aytugeren.com}
       # Writes new/updated post JSON here so web can serve it
       JSON_DIR: /app/public/generated/post
       # Optional: where to mirror MDX files inside the container
