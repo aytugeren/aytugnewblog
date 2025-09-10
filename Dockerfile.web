@@ -1,5 +1,5 @@
 # Next.js (production) multi-stage image using npm
-FROM node:20-bullseye-slim AS deps
+FROM node:20 AS deps
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1 \
     NPM_CONFIG_LEGACY_PEER_DEPS=true
@@ -7,10 +7,10 @@ COPY package.json package-lock.json* ./
 # Prefer reproducible installs if lockfile exists
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
-FROM node:20-bullseye-slim AS builder
+FROM node:20 AS builder
 WORKDIR /app
 ENV NODE_ENV=production \
-    NODE_OPTIONS=--max-old-space-size=2048 \
+    NODE_OPTIONS=--max-old-space-size=4096 \
     NEXT_TELEMETRY_DISABLED=1 \
     NPM_CONFIG_LEGACY_PEER_DEPS=true
 COPY --from=deps /app/node_modules ./node_modules
@@ -19,7 +19,7 @@ COPY . .
 RUN npm run build
 RUN npm prune --omit=dev
 
-FROM node:20-bullseye-slim AS runner
+FROM node:20 AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 # Prevent Next telemetry in container
