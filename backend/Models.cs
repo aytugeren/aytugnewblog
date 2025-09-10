@@ -81,6 +81,19 @@ public class HomeData
 
 public record OngoingProject(string Name, int Percent);
 
+// Admin: upsert payload for HomeData
+public class HomeUpsertRequest
+{
+    public string? HeroTitle { get; set; }
+    public string? HeroSubtitle { get; set; }
+    public Dictionary<string, List<Skill>>? Skills { get; set; }
+    public List<Experience>? Experiences { get; set; }
+    public List<Project>? Projects { get; set; }
+    public List<Post>? Posts { get; set; }
+    public bool? HasCv { get; set; }
+    public List<OngoingProject>? OngoingProjects { get; set; }
+}
+
 public class InsertRequest
 {
     public string Collection { get; set; } = string.Empty;

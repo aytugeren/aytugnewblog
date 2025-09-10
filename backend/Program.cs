@@ -118,6 +118,45 @@ app.MapGet("/api/home", async (IMongoDatabase db, IMemoryCache cache) =>
     return Results.Json(data);
 });
 
+// Upsert HomeData (create if not exists, otherwise replace). Auth required.
+app.MapPost("/api/home/upsert", async (IMongoDatabase db, [FromBody] HomeUpsertRequest req) =>
+{
+    var col = db.GetCollection<HomeData>("home");
+    var existing = await col.Find(FilterDefinition<HomeData>.Empty).FirstOrDefaultAsync();
+
+    // Normalize incoming payload
+    var skills = req.Skills ?? new Dictionary<string, List<Skill>>();
+    var experiences = req.Experiences ?? new List<Experience>();
+    var projects = req.Projects ?? new List<Project>();
+    var posts = existing?.Posts ?? req.Posts ?? new List<Post>();
+    var ongoing = req.OngoingProjects ?? new List<OngoingProject>();
+    var hasCv = req.HasCv ?? existing?.HasCv ?? false;
+
+    var doc = new HomeData
+    {
+        Id = existing?.Id ?? ObjectId.GenerateNewId(),
+        HeroTitle = req.HeroTitle ?? existing?.HeroTitle,
+        HeroSubtitle = req.HeroSubtitle ?? existing?.HeroSubtitle,
+        Skills = skills,
+        Experiences = experiences,
+        Projects = projects,
+        Posts = posts,
+        HasCv = hasCv,
+        OngoingProjects = ongoing,
+    };
+
+    if (existing is null)
+    {
+        await col.InsertOneAsync(doc);
+        return Results.Ok(new { ok = true, created = true, id = doc.Id.ToString() });
+    }
+    else
+    {
+        await col.ReplaceOneAsync(x => x.Id == existing.Id, doc);
+        return Results.Ok(new { ok = true, created = false, id = doc.Id.ToString() });
+    }
+}).RequireAuthorization();
+
 app.MapGet("/api/posts", (IMongoDatabase db) =>
 {
     var col = db.GetCollection<Post>("posts");
