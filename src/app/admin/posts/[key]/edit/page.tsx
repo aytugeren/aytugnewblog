@@ -28,7 +28,11 @@ export default function EditPostPage() {
   const router = useRouter()
   const params = useParams<{ key: string }>()
   const slugParam = useMemo(() => decodeURIComponent(String(params?.key ?? '')), [params])
-  const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'
+  const base =
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_API_BASE ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    'http://localhost:5000'
 
   const [id, setId] = useState<string | null>(null)
   const [title, setTitle] = useState('')
@@ -156,4 +160,3 @@ export default function EditPostPage() {
     </form>
   )
 }
-

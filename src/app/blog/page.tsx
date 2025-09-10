@@ -4,7 +4,11 @@ import Link from "next/link";
 import { SiteNavbar } from "../components/site-navbar";
 
 export default function BlogList() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+  const apiUrl =
+    process.env.NEXT_PUBLIC_API_BASE_URL ??
+    process.env.NEXT_PUBLIC_API_BASE ??
+    process.env.NEXT_PUBLIC_API_URL ??
+    "http://localhost:5000";
   const [q, setQ] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [apiPosts, setApiPosts] = useState<Array<{ title: string; date: string; summary: string; slug: string; tags?: string[] }>>([]);

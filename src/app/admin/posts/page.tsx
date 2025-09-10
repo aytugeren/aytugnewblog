@@ -4,7 +4,11 @@ import { useEffect, useState } from 'react'
 type Post = { id: string; title: string; date: string; summary: string; slug: string; tags?: string[] }
 
 export default function AdminPostsPage() {
-  const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'
+  const base =
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_API_BASE ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    'http://localhost:5000'
   const [posts, setPosts] = useState<Post[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -109,4 +113,3 @@ function getToken(): string | null {
   const m = document.cookie.match(/(?:^|; )token=([^;]+)/)
   return m ? decodeURIComponent(m[1]) : null
 }
-

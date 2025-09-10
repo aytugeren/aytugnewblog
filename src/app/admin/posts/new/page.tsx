@@ -28,7 +28,11 @@ function slugify(input: string): string {
 
 export default function NewPostPage() {
   const router = useRouter()
-  const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'
+  const base =
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_API_BASE ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    'http://localhost:5000'
   const today = new Date().toISOString().slice(0, 10)
 
   const [title, setTitle] = useState('')

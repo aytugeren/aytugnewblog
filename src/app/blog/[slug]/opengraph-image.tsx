@@ -1,11 +1,16 @@
 import { ImageResponse } from "next/og";
 
+export const runtime = "edge";
 export const size = { width: 1200, height: 630 } as const;
 export const contentType = "image/png";
 
-export default async function OgImage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:5000";
+export default async function OgImage({ params }: { params: { slug: string } }) {
+  const { slug } = params;
+  const apiUrl =
+    process.env.NEXT_PUBLIC_API_BASE_URL ??
+    process.env.NEXT_PUBLIC_API_BASE ??
+    process.env.NEXT_PUBLIC_API_URL ??
+    "http://localhost:5000";
 
   let title = "Yazı bulunamadı";
   let summary = "";
@@ -18,7 +23,9 @@ export default async function OgImage({ params }: { params: Promise<{ slug: stri
       summary = p.summary ?? "";
       dateStr = p.date ?? "";
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 
   return new ImageResponse(
     (
@@ -38,7 +45,10 @@ export default async function OgImage({ params }: { params: Promise<{ slug: stri
         <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
           <div
             style={{
-              width: 14, height: 14, borderRadius: 9999, background: "#8b5cf6",
+              width: 14,
+              height: 14,
+              borderRadius: 9999,
+              background: "#8b5cf6",
               boxShadow: "0 0 20px rgba(139,92,246,0.7)",
             }}
           />

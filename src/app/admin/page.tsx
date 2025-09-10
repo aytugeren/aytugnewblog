@@ -15,7 +15,11 @@ export default function AdminDashboard() {
   useEffect(() => {
     const token = getToken()
     if (!token) return
-    const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'
+    const base =
+      process.env.NEXT_PUBLIC_API_BASE_URL ||
+      process.env.NEXT_PUBLIC_API_BASE ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      'http://localhost:5000'
     fetch(`${base}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
       .then(async (r) => {
         if (!r.ok) throw new Error('Yetkilendirme başarısız')

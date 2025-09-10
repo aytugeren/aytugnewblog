@@ -30,7 +30,11 @@ const DEFAULT_DATA: HomeData = {
 }
 
 export default function AdminHomeFormPage() {
-  const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'
+  const base =
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_API_BASE ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    'http://localhost:5000'
   const [data, setData] = useState<HomeData>(DEFAULT_DATA)
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
@@ -182,7 +186,11 @@ export default function AdminHomeFormPage() {
       setErr(null)
       setMsg(null)
       try {
-        const base = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000'
+        const base =
+          process.env.NEXT_PUBLIC_API_BASE_URL ||
+          process.env.NEXT_PUBLIC_API_BASE ||
+          process.env.NEXT_PUBLIC_API_URL ||
+          'http://localhost:5000'
         await fetch(`${base}/api/track/cv`, { method: 'POST' })
       } catch {}
       const res = await fetch('/cv.pdf', { cache: 'no-store' })
@@ -719,4 +727,3 @@ function toApiPayload(data: HomeData) {
     ongoingProjects: data.OngoingProjects.map((o) => ({ name: o.Name, percent: o.Percent })),
   }
 }
-

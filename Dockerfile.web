@@ -15,9 +15,7 @@ ENV NODE_ENV=production \
     NPM_CONFIG_LEGACY_PEER_DEPS=true
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-RUN npm install --force
-# Build Next.js app
+# Build Next.js app with already-installed deps from previous stage
 RUN npm run build
 
 
