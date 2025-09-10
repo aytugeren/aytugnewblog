@@ -40,17 +40,17 @@ services:
       context: ..
       dockerfile: Dockerfile.web
       args:
-        NEXT_PUBLIC_API_BASE_URL: /api
-        NEXT_PUBLIC_SITE_URL: http://161.97.97.216:4000
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-}
       # No PNPM; Dockerfile handles npm and env
     restart: unless-stopped
     environment:
       NODE_ENV: production
       # Use same-origin API via Nginx at /api
-      NEXT_PUBLIC_API_BASE_URL: /api
-      NEXT_PUBLIC_SITE_URL: http://161.97.97.216:4000
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-}
       # Server-side only (not exposed to client)
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     depends_on:
       - backend
     ports:
