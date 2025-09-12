@@ -1,5 +1,10 @@
 ﻿import type { ReactNode } from 'react'
 import { UtfFixer } from '@/components/utf-fixer'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
@@ -15,6 +20,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               <a className="underline" href="/admin">Ana Sayfa</a>
               <a className="underline" href="/admin/home">Home JSON</a>
               <a className="underline" href="/admin/home/form">Home Form</a>
+              <a className="underline" href="/admin/settings">Ayarlar</a>
               <a className="underline" href="/admin/posts">Postlar</a>
               <a className="underline" href="/admin/contact">İletişim</a>
               <a className="px-3 py-1 rounded border" href="/">Siteye Git</a>

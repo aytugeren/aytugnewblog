@@ -9,6 +9,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
 // Use IPv4 loopback by default to avoid localhost -> ::1 resolution issues
@@ -117,6 +119,122 @@ app.MapGet("/api/home", async (IMongoDatabase db, IMemoryCache cache) =>
     cache.Set(key, data, TimeSpan.FromSeconds(homeTtlSec));
     return Results.Json(data);
 });
+
+// GitHub contributions (public). Requires GITHUB_TOKEN env if GitHub rate-limits.
+app.MapGet("/api/github/contributions", async (HttpContext ctx) =>
+{
+    var login = ctx.Request.Query["user"].FirstOrDefault();
+    if (string.IsNullOrWhiteSpace(login))
+        login = Environment.GetEnvironmentVariable("GITHUB_USER") ?? "aytugeren";
+
+    var token = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
+    // Token optional: unauthenticated calls may hit rate limits
+
+    var from = DateTime.UtcNow.AddDays(-365).Date;
+    var to = DateTime.UtcNow.Date.AddDays(1);
+
+    var query = new
+    {
+        query = @"query($login:String!, $from:DateTime!, $to:DateTime!) {
+  user(login:$login) {
+    contributionsCollection(from:$from, to:$to) {
+      contributionCalendar {
+        totalContributions
+        weeks { contributionDays { date contributionCount color } }
+      }
+    }
+  }
+}",
+        variables = new { login, from, to }
+    };
+
+    using var http = new HttpClient { BaseAddress = new Uri("https://api.github.com/") };
+    http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("aytug-blog", "1.0"));
+    http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+    if (!string.IsNullOrWhiteSpace(token))
+        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+    var content = new StringContent(JsonSerializer.Serialize(query), Encoding.UTF8, "application/json");
+    using var resp = await http.PostAsync("graphql", content);
+    var body = await resp.Content.ReadAsStringAsync();
+    if (!resp.IsSuccessStatusCode)
+    {
+        return Results.StatusCode((int)resp.StatusCode);
+    }
+
+    using var doc = JsonDocument.Parse(body);
+    var cal = doc.RootElement
+        .GetProperty("data").GetProperty("user")
+        .GetProperty("contributionsCollection")
+        .GetProperty("contributionCalendar");
+
+    var total = cal.GetProperty("totalContributions").GetInt32();
+    var weeks = new List<object>();
+    foreach (var w in cal.GetProperty("weeks").EnumerateArray())
+    {
+        var days = new List<object>();
+        foreach (var d in w.GetProperty("contributionDays").EnumerateArray())
+        {
+            days.Add(new
+            {
+                date = d.GetProperty("date").GetString(),
+                count = d.GetProperty("contributionCount").GetInt32(),
+                color = d.TryGetProperty("color", out var col) ? col.GetString() : null
+            });
+        }
+        weeks.Add(new { days });
+    }
+
+    return Results.Json(new { user = login, total, weeks });
+});
+
+// Get site settings (public). Returns single document if exists.
+app.MapGet("/api/settings", async (IMongoDatabase db) =>
+{
+    var col = db.GetCollection<SiteSettings>("settings");
+    var data = await col.Find(FilterDefinition<SiteSettings>.Empty).FirstOrDefaultAsync();
+    if (data is null) return Results.NotFound();
+    return Results.Json(new
+    {
+        siteName = data.SiteName,
+        defaultTitle = data.DefaultTitle,
+        titleTemplate = data.TitleTemplate,
+        description = data.Description,
+        keywords = data.Keywords ?? new List<string>(),
+        twitterCreator = data.TwitterCreator,
+        locale = data.Locale,
+        siteUrl = data.SiteUrl,
+        defaultOgImage = data.DefaultOgImage,
+    });
+});
+
+// Upsert site settings (auth required). Creates or replaces the single doc.
+app.MapPost("/api/settings/upsert", async (IMongoDatabase db, [FromBody] SiteSettingsUpsert req) =>
+{
+    var col = db.GetCollection<SiteSettings>("settings");
+    var existing = await col.Find(FilterDefinition<SiteSettings>.Empty).FirstOrDefaultAsync();
+
+    var doc = new SiteSettings
+    {
+        Id = existing?.Id ?? ObjectId.GenerateNewId(),
+        SiteName = req.SiteName ?? existing?.SiteName,
+        DefaultTitle = req.DefaultTitle ?? existing?.DefaultTitle,
+        TitleTemplate = req.TitleTemplate ?? existing?.TitleTemplate,
+        Description = req.Description ?? existing?.Description,
+        Keywords = req.Keywords ?? existing?.Keywords ?? new List<string>(),
+        TwitterCreator = req.TwitterCreator ?? existing?.TwitterCreator,
+        Locale = req.Locale ?? existing?.Locale,
+        SiteUrl = req.SiteUrl ?? existing?.SiteUrl,
+        DefaultOgImage = req.DefaultOgImage ?? existing?.DefaultOgImage,
+    };
+
+    if (existing is null)
+        await col.InsertOneAsync(doc);
+    else
+        await col.ReplaceOneAsync(x => x.Id == existing.Id, doc);
+
+    return Results.Ok(new { ok = true, id = doc.Id.ToString() });
+}).RequireAuthorization();
 
 // Upsert HomeData (create if not exists, otherwise replace). Auth required.
 app.MapPost("/api/home/upsert", async (IMongoDatabase db, IMemoryCache cache, [FromBody] HomeUpsertRequest req) =>

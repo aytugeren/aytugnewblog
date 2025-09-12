@@ -1,6 +1,6 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
-import { Github, Linkedin, Twitter } from "lucide-react";
+import { SocialLinks } from "./components/social-links";
 import { SiteNavbar } from "./components/site-navbar";
 import { Section } from "@/components/section";
 import { SkillBar } from "@/components/skill-bar";
@@ -11,6 +11,7 @@ import { Entrance3D } from "@/components/entrance-3d";
 import { CodeBackground } from "./components/codebackground";
 import { CornerCoder } from "@/components/corner-coder";
 import { ContactForm } from "./components/contact-form";
+import { GitHubContrib } from "./components/github-contrib";
 
 const labelOngoingTitle = "\u00DCzerinde \u00C7al\u0131\u015Ft\u0131\u011F\u0131m Projeler";
 const labelOngoingDesc = "Tamamlanma y\u00FCzdesi ile g\u00FCncel durum";
@@ -101,7 +102,7 @@ export default async function HomePage() {
                   </h1>
                   <p className="mt-6 max-w-prose text-lg leading-relaxed text-muted-foreground">{heroSubtitle}</p>
                   <div className="mt-8 flex flex-wrap gap-3">
-                    <Link href="#contact" className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">{"\u0130leti\u015Fim"}</Link>
+                    <Link href="#contact" className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">İletişim</Link>
                     <Link href="#projects" className="inline-flex items-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">Projeler</Link>
                     {hasCv ? (
                       <a href="/cv.pdf" download className="inline-flex items-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">CV'yi indir (PDF)</a>
@@ -109,14 +110,14 @@ export default async function HomePage() {
                       <button className="inline-flex items-center rounded-md border border-input bg-muted px-4 py-2 text-sm font-medium text-muted-foreground" disabled>CV'yi indir (PDF)</button>
                     )}
                   </div>
-                  <div className="mt-8 flex gap-4">
-                    <Link href="https://github.com/aytug" aria-label="GitHub" className="text-muted-foreground transition hover:text-foreground"><Github className="h-5 w-5" /></Link>
-                    <Link href="https://linkedin.com/in/aytug" aria-label="LinkedIn" className="text-muted-foreground transition hover:text-foreground"><Linkedin className="h-5 w-5" /></Link>
-                    <Link href="https://x.com/aytug" aria-label="X" className="text-muted-foreground transition hover:text-foreground"><Twitter className="h-5 w-5" /></Link>
-                  </div>
+                  <SocialLinks
+                    instagram="https://instagram.com/aytugeren"
+                    linkedin="https://www.linkedin.com/in/aytugeren/"
+                    github="https://github.com/aytugeren"
+                  />
                 </div>
                 <div className="flex justify-center md:justify-end">
-                  <Image src={heroEmblem} width={160} height={160} alt={"Aytuğ EREN"} className="h-40 w-40 rounded-full bg-primary/10 p-4" />
+                  <Image src={heroEmblem} width={160} height={160} alt={"AytuÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ EREN"} className="h-40 w-40 rounded-full bg-primary/10 p-4" />
                 </div>
               </div>
             </section>
@@ -166,7 +167,7 @@ export default async function HomePage() {
             <Section title={labelExperienceTitle}>
               <ol className="space-y-8">
                 {experiences.map((exp, key) => {
-                  const period = `${exp.beginDate}${exp.endDate ? " – " + exp.endDate : " – Günümüz"}`;
+                  const period = `${exp.beginDate}${exp.endDate ? " - " + exp.endDate : " - Gunumuz"}`;
                   return (
                     <TimelineItem key={key} company={exp.companyName} role={exp.tag} period={period} achievements={exp.workDescription ? [exp.workDescription] : []} />
                   );
@@ -197,18 +198,35 @@ export default async function HomePage() {
             </Section>
 
             {/* Latest Posts */}
-            <Section title="Son Blog Yazıları">
-              <div className="space-y-8">
-                {posts.map((post) => (
-                  <PostListItem key={post.slug} post={post} />
-                ))}
-              </div>
+<Section title="Son Blog Yazilari">
+  {(() => {
+    const latest = (posts || []).slice(0, 4);
+    const left = latest.slice(0, 2);
+    const right = latest.slice(2, 4);
+    return (
+      <div className="grid gap-8 md:grid-cols-2">
+        <div className="space-y-8">
+          {left.map((post) => (
+            <PostListItem key={post.slug} post={post} />
+          ))}
+        </div>
+        <div className="space-y-8">
+          {right.map((post) => (
+            <PostListItem key={post.slug} post={post} />
+          ))}
+        </div>
+      </div>
+    );
+  })()}
+</Section>
+            {/* GitHub Activity */}
+            <Section title="GitHub Aktivitesi"> 
+              <GitHubContrib user="aytugeren" />
             </Section>
 
-            {/* Contact */}
-            <Section id="contact" title={"\u0130leti\u015Fim"}>
+            <Section id="contact" title={"Iletisim"}>
               <div className="space-y-6">
-                <a href="mailto:aytug@example.com" className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">Email Gönder</a>
+                <a href="mailto:aytug@example.com" className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">Email Gonder</a>
                 <form className="hidden grid gap-4 sm:grid-cols-2">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium leading-none">Ad</label>
@@ -223,7 +241,7 @@ export default async function HomePage() {
                     <textarea id="message" rows={4} className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary" />
                   </div>
                   <div className="sm:col-span-2">
-                    <button type="button" disabled className="inline-flex items-center rounded-md border border-input bg-muted px-4 py-2 text-sm font-medium text-muted-foreground">Gönder</button>
+                    <button type="button" disabled className="inline-flex items-center rounded-md border border-input bg-muted px-4 py-2 text-sm font-medium text-muted-foreground">Gonder</button>
                   </div>
                 </form>
                 <ContactForm />

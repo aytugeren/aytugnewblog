@@ -9,14 +9,45 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params;
   const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL as string;
+  const siteBase = (process.env.NEXT_PUBLIC_SITE_URL as string)?.replace(/\/$/, "") || "";
   try {
     const res = await fetch(`${apiUrl}/api/posts/${slug}`, { cache: "no-store" });
     if (res.ok) {
       const p = await res.json();
-      return { title: p.title, description: p.summary };
+      const title = p?.title ?? slug;
+      const description = p?.summary ?? "";
+      const pageUrl = `${siteBase}/blog/${slug}`;
+      const image = `${siteBase}/blog/${slug}/opengraph-image`;
+      const tags: string[] = Array.isArray(p?.tags) ? p.tags : [];
+      return {
+        title,
+        description,
+        alternates: { canonical: `/blog/${slug}` },
+        openGraph: {
+          type: "article",
+          url: pageUrl,
+          siteName: "Aytug Eren",
+          title,
+          description,
+          images: [image],
+          locale: "tr_TR",
+          publishedTime: typeof p?.date === "string" ? p.date : undefined,
+          authors: ["Aytug Eren"],
+          tags,
+        },
+        twitter: {
+          card: "summary_large_image",
+          title,
+          description,
+          images: [image],
+        },
+      };
     }
   } catch { /* ignore */ }
-  return { title: slug };
+  return {
+    title: slug,
+    alternates: { canonical: `/blog/${slug}` },
+  };
 }
 
 export default async function PostPage(

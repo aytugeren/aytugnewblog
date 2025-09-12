@@ -143,3 +143,34 @@ public class ContactMessage
     public string? Ip { get; set; }
     public string? UserAgent { get; set; }
 }
+
+// Site-wide settings for SEO/metadata
+[BsonIgnoreExtraElements]
+public class SiteSettings
+{
+    [BsonId]
+    public ObjectId Id { get; set; }
+    public string? SiteName { get; set; }
+    public string? DefaultTitle { get; set; }
+    public string? TitleTemplate { get; set; }
+    public string? Description { get; set; }
+    public List<string>? Keywords { get; set; }
+    public string? TwitterCreator { get; set; }
+    public string? Locale { get; set; }
+    public string? SiteUrl { get; set; }
+    public string? DefaultOgImage { get; set; }
+}
+
+// Upsert payload for SiteSettings
+public class SiteSettingsUpsert
+{
+    public string? SiteName { get; set; }
+    public string? DefaultTitle { get; set; }
+    public string? TitleTemplate { get; set; }
+    public string? Description { get; set; }
+    public List<string>? Keywords { get; set; }
+    public string? TwitterCreator { get; set; }
+    public string? Locale { get; set; }
+    public string? SiteUrl { get; set; }
+    public string? DefaultOgImage { get; set; }
+}
