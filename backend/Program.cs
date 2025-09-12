@@ -11,6 +11,7 @@ using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 // Use IPv4 loopback by default to avoid localhost -> ::1 resolution issues
@@ -98,6 +99,23 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Honor proxy headers (X-Forwarded-Proto/For) when behind a reverse proxy
+var fwdOpts = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+};
+// Trust all proxies/networks by default; configure at the proxy layer
+fwdOpts.KnownNetworks.Clear();
+fwdOpts.KnownProxies.Clear();
+app.UseForwardedHeaders(fwdOpts);
+
+// In production, enforce HTTPS semantics when behind TLS-terminating proxy
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+    app.UseHttpsRedirection();
+}
 var homeTtlSec = int.TryParse(Environment.GetEnvironmentVariable("CACHE_TTL_HOME_SECONDS"), out var _h) ? _h : 120;
 var postsTtlSec = int.TryParse(Environment.GetEnvironmentVariable("CACHE_TTL_POSTS_SECONDS"), out var _p) ? _p : 120;
 
