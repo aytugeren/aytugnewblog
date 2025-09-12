@@ -31,7 +31,6 @@ services:
       ADMIN_PASS: ${ADMIN_PASS}
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
       GITHUB_USER: ${GITHUB_USER:-}
-      
     depends_on:
       - mongo
     ports:
