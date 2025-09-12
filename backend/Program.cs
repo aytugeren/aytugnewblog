@@ -1,4 +1,4 @@
-using MongoDB.Driver;
+﻿using MongoDB.Driver;
 using MongoDB.Bson;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
@@ -945,6 +945,63 @@ app.MapGet("/api/health/db", async ([FromServices] IMongoDatabase db) =>
     {
         return Results.Problem(title: "MongoDB connection failed", detail: ex.Message);
     }
+});
+
+// Site status checks (public). Mirrors Next.js /api/admin/site-status to avoid proxy collisions
+app.MapGet("/api/admin/site-status", async (HttpContext ctx) =>
+{
+    string scheme = ctx.Request.Scheme;
+    var host = ctx.Request.Host.HasValue ? ctx.Request.Host.Value : "localhost";
+    var origin = $"{scheme}://{host}";
+
+    var targets = new[] { "/", "/blog", "/projects", "/rss.xml" };
+    var absolute = targets.Select(t => new Uri(new Uri(origin + "/"), t).ToString()).ToArray();
+
+    async Task<object> CheckAsync(string url)
+    {
+        var started = DateTime.UtcNow;
+        try
+        {
+            using var http = new HttpClient();
+            http.Timeout = TimeSpan.FromSeconds(10);
+            using var res = await http.GetAsync(url);
+            var ms = (int)(DateTime.UtcNow - started).TotalMilliseconds;
+            var text = await res.Content.ReadAsStringAsync();
+            var size = Encoding.UTF8.GetByteCount(text);
+            var encodingWarnings = new List<string>();
+            if (Regex.IsMatch(text, "[Ã�ÅÄÂ�]")) encodingWarnings.Add("encoding_mojibake");
+            if (text.Contains('\uFFFD')) encodingWarnings.Add("replacement_char");
+            return new { url, ok = res.IsSuccessStatusCode, status = (int)res.StatusCode, ms, size, encodingWarnings };
+        }
+        catch (Exception ex)
+        {
+            var ms = (int)(DateTime.UtcNow - started).TotalMilliseconds;
+            return new { url, ok = false, status = 0, ms, size = 0, error = ex.Message };
+        }
+    }
+
+    var results = await Task.WhenAll(absolute.Select(CheckAsync));
+    var avgMs = (int)Math.Round(results.Select(r => (int)r.GetType().GetProperty("ms")!.GetValue(r)!).Average());
+    var hasErrors = results.Any(r => !(bool)r.GetType().GetProperty("ok")!.GetValue(r)!);
+    var anyEncoding = results.Any(r =>
+    {
+        var prop = r.GetType().GetProperty("encodingWarnings");
+        var list = prop?.GetValue(r) as IEnumerable<string>;
+        return list is not null && list.Any();
+    });
+
+    var payload = new
+    {
+        ok = true,
+        origin,
+        checkedAt = DateTime.UtcNow.ToString("o"),
+        avgMs,
+        hasErrors,
+        anyEncoding,
+        results,
+        aiSummary = (string?)null
+    };
+    return Results.Json(payload);
 });
 
 // Export all DB posts to content/posts as MDX (auth)
