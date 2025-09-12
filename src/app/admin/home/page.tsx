@@ -11,6 +11,7 @@ type HomeData = {
   OngoingProjects: { Name: string; Percent: number }[]
   HeroTitle?: string;
   HeroSubtitle?: string;
+  HeroEmblem?: string;
 }
 
 const SAMPLE: HomeData = {

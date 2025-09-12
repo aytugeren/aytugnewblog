@@ -119,7 +119,7 @@ app.MapGet("/api/home", async (IMongoDatabase db, IMemoryCache cache) =>
 });
 
 // Upsert HomeData (create if not exists, otherwise replace). Auth required.
-app.MapPost("/api/home/upsert", async (IMongoDatabase db, [FromBody] HomeUpsertRequest req) =>
+app.MapPost("/api/home/upsert", async (IMongoDatabase db, IMemoryCache cache, [FromBody] HomeUpsertRequest req) =>
 {
     var col = db.GetCollection<HomeData>("home");
     var existing = await col.Find(FilterDefinition<HomeData>.Empty).FirstOrDefaultAsync();
@@ -137,6 +137,7 @@ app.MapPost("/api/home/upsert", async (IMongoDatabase db, [FromBody] HomeUpsertR
         Id = existing?.Id ?? ObjectId.GenerateNewId(),
         HeroTitle = req.HeroTitle ?? existing?.HeroTitle,
         HeroSubtitle = req.HeroSubtitle ?? existing?.HeroSubtitle,
+        HeroEmblem = req.HeroEmblem ?? existing?.HeroEmblem,
         Skills = skills,
         Experiences = experiences,
         Projects = projects,
@@ -148,11 +149,13 @@ app.MapPost("/api/home/upsert", async (IMongoDatabase db, [FromBody] HomeUpsertR
     if (existing is null)
     {
         await col.InsertOneAsync(doc);
+        cache.Remove("home_doc");
         return Results.Ok(new { ok = true, created = true, id = doc.Id.ToString() });
     }
     else
     {
         await col.ReplaceOneAsync(x => x.Id == existing.Id, doc);
+        cache.Remove("home_doc");
         return Results.Ok(new { ok = true, created = false, id = doc.Id.ToString() });
     }
 }).RequireAuthorization();
@@ -191,6 +194,103 @@ app.MapPost("/api/upload/cv", async (HttpRequest request) =>
 
     return Results.Ok(new { ok = true, saved = targetPath });
 }).RequireAuthorization();
+
+// Upload Hero Emblem (image). Saves to a fixed path and updates HomeData.HeroEmblem. Auth required.
+app.MapPost("/api/upload/hero-emblem", async (HttpRequest request, IMongoDatabase db, IMemoryCache cache) =>
+{
+    if (!request.HasFormContentType)
+        return Results.BadRequest("multipart/form-data bekleniyor");
+
+    var form = await request.ReadFormAsync();
+    var file = form.Files["file"];
+    if (file is null || file.Length == 0)
+        return Results.BadRequest("dosya yok");
+
+    // Basic validation: accept common image types up to ~5MB
+    var allowed = new[] { ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg" };
+    var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+    if (string.IsNullOrWhiteSpace(ext) || !allowed.Contains(ext))
+        return Results.BadRequest("desteklenmeyen dosya tipi");
+    const long maxImgSize = 5 * 1024 * 1024;
+    if (file.Length > maxImgSize)
+        return Results.BadRequest("dosya boyutu buyuk");
+
+    // Determine target path
+    var basePath = Environment.GetEnvironmentVariable("HERO_EMBLEM_PATH");
+    if (string.IsNullOrWhiteSpace(basePath))
+        basePath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "hero-emblem"));
+    var finalPath = basePath + ext;
+    var dir = Path.GetDirectoryName(finalPath);
+    if (!string.IsNullOrWhiteSpace(dir)) Directory.CreateDirectory(dir);
+
+    // Clean old emblem files with different extensions
+    try
+    {
+        var globDir = string.IsNullOrWhiteSpace(dir) ? AppContext.BaseDirectory : dir;
+        var stem = Path.GetFileName(basePath);
+        foreach (var cand in Directory.EnumerateFiles(globDir, stem + ".*"))
+        {
+            if (!string.Equals(cand, finalPath, StringComparison.OrdinalIgnoreCase))
+                File.Delete(cand);
+        }
+    }
+    catch { }
+
+    using (var fs = new FileStream(finalPath, FileMode.Create, FileAccess.Write, FileShare.None))
+    {
+        await file.CopyToAsync(fs);
+    }
+
+    // Update HomeData.HeroEmblem to served URL and clear cache
+    var col = db.GetCollection<HomeData>("home");
+    var existing = await col.Find(FilterDefinition<HomeData>.Empty).FirstOrDefaultAsync();
+    var servedUrl = "/hero-emblem";
+    if (existing is null)
+    {
+        var doc = new HomeData
+        {
+            Id = ObjectId.GenerateNewId(),
+            HeroEmblem = servedUrl,
+        };
+        await col.InsertOneAsync(doc);
+    }
+    else
+    {
+        var ub = Builders<HomeData>.Update.Set(x => x.HeroEmblem, servedUrl);
+        await col.UpdateOneAsync(x => x.Id == existing.Id, ub);
+    }
+    cache.Remove("home_doc");
+
+    return Results.Ok(new { ok = true, url = servedUrl });
+}).RequireAuthorization();
+
+// Serve Hero Emblem (public)
+app.MapGet("/api/files/hero-emblem", () =>
+{
+    var basePath = Environment.GetEnvironmentVariable("HERO_EMBLEM_PATH");
+    if (string.IsNullOrWhiteSpace(basePath))
+        basePath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "hero-emblem"));
+    var candidates = new[] { ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg" };
+    string? found = null;
+    foreach (var e in candidates)
+    {
+        var p = basePath + e;
+        if (System.IO.File.Exists(p)) { found = p; break; }
+    }
+    if (found is null) return Results.NotFound();
+    var ext = Path.GetExtension(found).ToLowerInvariant();
+    var ct = ext switch
+    {
+        ".png" => "image/png",
+        ".jpg" or ".jpeg" => "image/jpeg",
+        ".webp" => "image/webp",
+        ".gif" => "image/gif",
+        ".svg" => "image/svg+xml",
+        _ => "application/octet-stream"
+    };
+    var stream = new FileStream(found, FileMode.Open, FileAccess.Read, FileShare.Read);
+    return Results.File(stream, ct, enableRangeProcessing: true);
+});
 
 // Serve CV PDF (public). Streams file saved by /api/upload/cv
 app.MapGet("/api/files/cv", () =>

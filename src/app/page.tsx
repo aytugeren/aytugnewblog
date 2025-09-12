@@ -49,6 +49,7 @@ export default async function HomePage() {
     ongoingProjects?: OngoingProject[];
     heroTitle?: string;
     heroSubtitle?: string;
+    heroEmblem?: string;
   } = { skills: {}, experiences: [], projects: [], posts: [], hasCv: false, ongoingProjects: [] };
 
   let postsFromApi: Post[] = [];
@@ -78,6 +79,7 @@ export default async function HomePage() {
   const ongoingProjects = data.ongoingProjects ?? [];
   const heroTitle = (data.heroTitle as any) ?? "Aytu\u011F Y \u2014 Senior .NET & Frontend Engineer";
   const heroSubtitle = (data.heroSubtitle as any) ?? "Y\u00FCksek etkili \u00FCr\u00FCnler in\u015Fa eden, performans odakl\u0131 bir geli\u015Ftirici. Tak\u0131mlar\u0131n h\u0131zl\u0131 ve g\u00FCvenilir \u015Fekilde teslimat yapmas\u0131n\u0131 sa\u011Flar.";
+  const heroEmblem = (data as any)?.heroEmblem ?? '';
 
   return (
     <>
@@ -94,7 +96,9 @@ export default async function HomePage() {
             <section className="mx-auto max-w-6xl px-4 py-24 sm:py-32">
               <div className="grid items-center gap-12 md:grid-cols-2">
                 <div>
-                  <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">{heroTitle}</h1>
+                  <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+                    {heroTitle}
+                  </h1>
                   <p className="mt-6 max-w-prose text-lg leading-relaxed text-muted-foreground">{heroSubtitle}</p>
                   <div className="mt-8 flex flex-wrap gap-3">
                     <Link href="#contact" className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">{"\u0130leti\u015Fim"}</Link>
@@ -112,7 +116,7 @@ export default async function HomePage() {
                   </div>
                 </div>
                 <div className="flex justify-center md:justify-end">
-                  <Image src="/vercel.svg" width={160} height={160} alt={"Aytu\u011F Y avatar"} className="h-40 w-40 rounded-full bg-primary/10 p-4" />
+                  <Image src={heroEmblem} width={160} height={160} alt={"Aytuğ EREN"} className="h-40 w-40 rounded-full bg-primary/10 p-4" />
                 </div>
               </div>
             </section>

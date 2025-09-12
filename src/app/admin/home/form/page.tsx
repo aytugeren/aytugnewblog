@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { useEffect, useMemo, useState } from 'react'
 
 type Skill = { Name: string; Level: string }
@@ -9,6 +9,7 @@ type Ongoing = { Name: string; Percent: number }
 type HomeData = {
   HeroTitle?: string
   HeroSubtitle?: string
+  HeroEmblem?: string
   Skills: Record<string, Skill[]>
   Experiences: Experience[]
   Projects: Project[]
@@ -21,6 +22,7 @@ const DEFAULT_DATA: HomeData = {
   HeroTitle: "Aytu\u011F Y \u2014 Senior .NET & Frontend Engineer",
   HeroSubtitle:
     "Y\u00FCksek etkili \u00FCr\u00FCnler in\u015Fa eden, performans odakl\u0131 bir geli\u015Ftirici. Tak\u0131mlar\u0131n h\u0131zl\u0131 ve g\u00FCvenilir \u015Fekilde teslimat yapmas\u0131n\u0131 sa\u011Flar.",
+  HeroEmblem: '',
   Skills: {},
   Experiences: [],
   Projects: [],
@@ -36,6 +38,7 @@ export default function AdminHomeFormPage() {
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [cvFile, setCvFile] = useState<File | null>(null)
+  const [emblemFile, setEmblemFile] = useState<File | null>(null)
   const [savedSnapshot, setSavedSnapshot] = useState<string>(
     JSON.stringify(toApiPayload(DEFAULT_DATA))
   )
@@ -202,6 +205,40 @@ export default function AdminHomeFormPage() {
     }
   }
 
+  const uploadEmblem = async () => {
+    if (!emblemFile) {
+      setErr('Görsel dosyası seçin')
+      return
+    }
+    setLoading(true)
+    setMsg(null)
+    setErr(null)
+    try {
+      const token = getToken()
+      if (!token) throw new Error('Oturum bulunamadı')
+      const fd = new FormData()
+      fd.append('file', emblemFile)
+      const res = await fetch(`${base}/api/upload/hero-emblem`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      })
+      if (!res.ok) throw new Error('Amblem yüklenemedi')
+      const j = await res.json()
+      const url = String(j?.url || '')
+      setData((d) => {
+        const nd = { ...d, HeroEmblem: url }
+        setSavedSnapshot(JSON.stringify(toApiPayload(nd)))
+        return nd
+      })
+      setMsg('Amblem yüklendi')
+    } catch (e: any) {
+      setErr(e.message || 'Hata')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -243,6 +280,34 @@ export default function AdminHomeFormPage() {
             value={data.HeroSubtitle || ''}
             onChange={(e) => setData((d) => ({ ...d, HeroSubtitle: e.target.value }))}
           />
+          <input
+            className="w-full border rounded px-2 py-1 bg-transparent"
+            placeholder="Amblem (emoji veya metin)"
+            value={data.HeroEmblem || ''}
+            onChange={(e) => setData((d) => ({ ...d, HeroEmblem: e.target.value }))}
+          />
+        </div>
+      </section>
+
+      <section className="border rounded p-4 space-y-3">
+        <h2 className="font-semibold">Amblem Yükleme</h2>
+        <div className="space-y-2">
+          <div className="text-sm text-gray-600">Hero amblemi (PNG/JPG/WebP/SVG)</div>
+          <div className="flex items-center gap-2">
+            <input type="file" accept="image/*" onChange={(e) => setEmblemFile(e.target.files?.[0] ?? null)} />
+            <button
+              type="button"
+              onClick={uploadEmblem}
+              disabled={loading || !emblemFile}
+              className="px-3 py-1 rounded bg-blue-600 text-white disabled:opacity-50"
+            >
+              Yükle
+            </button>
+            {data.HeroEmblem && (data.HeroEmblem.startsWith('http') || data.HeroEmblem.startsWith('/')) && (
+              <img src={data.HeroEmblem} alt="Hero emblem" className="h-7 w-7 object-contain rounded" />
+            )}
+          </div>
+          <p className="text-xs text-gray-500">Kaydedilen dosya, {`/hero-emblem`} üzerinden sunulur.</p>
         </div>
       </section>
 
@@ -684,6 +749,7 @@ function normalizeFromApi(api: any): HomeData {
   return {
     HeroTitle: String(api?.heroTitle ?? api?.HeroTitle ?? ''),
     HeroSubtitle: String(api?.heroSubtitle ?? api?.HeroSubtitle ?? ''),
+    HeroEmblem: String(api?.heroEmblem ?? api?.HeroEmblem ?? ''),
     Skills: skills,
     Experiences: experiences,
     Projects: projects,
@@ -716,6 +782,7 @@ function toApiPayload(data: HomeData) {
     hasCv: data.HasCv,
     heroTitle: data.HeroTitle ?? '',
     heroSubtitle: data.HeroSubtitle ?? '',
+    heroEmblem: data.HeroEmblem ?? '',
     ongoingProjects: data.OngoingProjects.map((o) => ({ name: o.Name, percent: o.Percent })),
   }
 }

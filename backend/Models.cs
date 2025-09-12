@@ -71,6 +71,7 @@ public class HomeData
     public ObjectId Id { get; set; }
     public string? HeroTitle { get; set; }
     public string? HeroSubtitle { get; set; }
+    public string? HeroEmblem { get; set; }
     public Dictionary<string, List<Skill>> Skills { get; set; } = new();
     public List<Experience> Experiences { get; set; } = new();
     public List<Project> Projects { get; set; } = new();
@@ -86,6 +87,7 @@ public class HomeUpsertRequest
 {
     public string? HeroTitle { get; set; }
     public string? HeroSubtitle { get; set; }
+    public string? HeroEmblem { get; set; }
     public Dictionary<string, List<Skill>>? Skills { get; set; }
     public List<Experience>? Experiences { get; set; }
     public List<Project>? Projects { get; set; }
