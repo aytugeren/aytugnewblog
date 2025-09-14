@@ -73,14 +73,14 @@ export default function AdminPostsPage() {
             onClick={onSync}
             disabled={syncing}
             className="px-3 py-1 rounded border bg-white disabled:opacity-60"
-            title="Veritabanındaki tüm postları content/posts içine .mdx olarak yazar"
+            title={"Veritabanındaki tüm postları content/posts içine .mdx olarak yazar"}
           >
-            {syncing ? 'Senkronize ediliyor…' : 'MDX’e Senkronize Et'}
+            {syncing ? 'Senkronize ediliyor…' : 'MDX’te Senkronize Et'}
           </button>
           <a href="/admin/posts/new" className="px-3 py-1 rounded bg-blue-600 text-white">Yeni Post</a>
         </div>
       </div>
-      {loading && <p className="text-sm text-gray-500">{"YǬkleniyor..."}</p>}
+      {loading && <p className="text-sm text-gray-500">{'Yükleniyor...'}</p>}
       {error && <p className="text-sm text-red-500">{error}</p>}
       {syncError && <p className="text-sm text-red-500">{syncError}</p>}
       {syncInfo && <p className="text-sm text-green-600">{syncInfo}</p>}
@@ -89,16 +89,16 @@ export default function AdminPostsPage() {
           <div key={p.id} className="flex items-center justify-between px-3 py-2">
             <div>
               <div className="font-medium">{p.title}</div>
-              <div className="text-xs text-gray-500">{p.date} �?" /blog/{p.slug}</div>
+              <div className="text-xs text-gray-500">{p.date} — /blog/{p.slug}</div>
             </div>
             <div className="flex items-center gap-2 text-sm">
-              <a className="underline" href={`/blog/${p.slug}`} target="_blank">{"G��rǬntǬle"}</a>
-              <a className="underline" href={`/admin/posts/${p.slug}/edit`}>{"DǬzenle"}</a>
+              <a className="underline" href={`/blog/${p.slug}`} target="_blank">{'Görüntüle'}</a>
+              <a className="underline" href={`/admin/posts/${p.slug}/edit`}>{'Düzenle'}</a>
             </div>
           </div>
         ))}
         {(!loading && posts.length === 0) && (
-          <div className="p-3 text-sm text-gray-500">{"HenǬz post yok."}</div>
+          <div className="p-3 text-sm text-gray-500">{'Henüz post yok.'}</div>
         )}
       </div>
     </div>
@@ -109,3 +109,4 @@ function getToken(): string | null {
   const m = document.cookie.match(/(?:^|; )token=([^;]+)/)
   return m ? decodeURIComponent(m[1]) : null
 }
+

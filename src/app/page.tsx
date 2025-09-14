@@ -1,5 +1,6 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
+import TrueFocus from "@/components/true-focus";
 import { SocialLinks } from "./components/social-links";
 import { SiteNavbar } from "./components/site-navbar";
 import { Section } from "@/components/section";
@@ -98,7 +99,7 @@ export default async function HomePage() {
               <div className="grid items-center gap-12 md:grid-cols-2">
                 <div>
                   <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                    {heroTitle}
+                    <TrueFocus text={String(heroTitle)} />
                   </h1>
                   <p className="mt-6 max-w-prose text-lg leading-relaxed text-muted-foreground">{heroSubtitle}</p>
                   <div className="mt-8 flex flex-wrap gap-3">

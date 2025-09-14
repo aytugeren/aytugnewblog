@@ -29,6 +29,7 @@ public record Post(string Title, string Date, string Summary, string Slug)
     public List<string>? Tags { get; set; }
     public string? Body { get; set; }
     public bool Published { get; set; } = true;
+    
 }
 
 public record PostCreate(

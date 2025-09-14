@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { MediumEditor } from '@/components/medium-editor'
 
@@ -12,15 +12,15 @@ function slugify(input: string): string {
   if (!input) return 'post'
   let s = input.toLowerCase().trim()
   const map: Record<string, string> = {
-    ç: 'c', Ç: 'c', ğ: 'g', Ğ: 'g', ı: 'i', İ: 'i', ö: 'o', Ö: 'o', ş: 's', Ş: 's', ü: 'u', Ü: 'u',
+    '\u00E7': 'c', '\u00C7': 'c',
+    '\u011F': 'g', '\u011E': 'g',
+    '\u0131': 'i', '\u0130': 'i',
+    '\u00F6': 'o', '\u00D6': 'o',
+    '\u015F': 's', '\u015E': 's',
+    '\u00FC': 'u', '\u00DC': 'u',
   } as any
-  s = s
-    .split('')
-    .map((ch) => (map as any)[ch] ?? ch)
-    .join('')
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/[\s-]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+  s = s.split('').map(ch => (map as any)[ch] ?? ch).join('')
+  s = s.replace(/[^a-z0-9\s-]/g, '').replace(/[\s-]+/g, '-').replace(/^-+|-+$/g, '')
   return s || 'post'
 }
 
@@ -52,8 +52,8 @@ export default function EditPostPage() {
       setMsg(null)
       try {
         const res = await fetch(`${base}/api/posts/${encodeURIComponent(slugParam)}`, { cache: 'no-store' })
-        if (res.status === 404) throw new Error('Yazı bulunamadı')
-        if (!res.ok) throw new Error('Post yüklenemedi')
+        if (res.status === 404) throw new Error('Yaz\u0131 bulunamad\u0131')
+        if (!res.ok) throw new Error('Post y\u00FCklenemedi')
         const p = await res.json()
         setId(p.id ?? null)
         setTitle(p.title ?? p.Title ?? '')
@@ -78,8 +78,8 @@ export default function EditPostPage() {
     setMsg(null)
     try {
       const token = getToken()
-      if (!token) throw new Error('Oturum bulunamadı')
-      if (!id) throw new Error('Geçersiz yazı')
+      if (!token) throw new Error('Oturum bulunamad\u0131')
+      if (!id) throw new Error('Ge\u00E7ersiz yaz\u0131')
       const payload = {
         title,
         date,
@@ -95,8 +95,8 @@ export default function EditPostPage() {
         body: JSON.stringify(payload),
       })
       if (res.status === 409) throw new Error('Slug zaten mevcut')
-      if (!res.ok) throw new Error('Güncelleme başarısız')
-      setMsg('Güncellendi')
+      if (!res.ok) throw new Error('G\u00FCncelleme ba\u015Far\u0131s\u0131z')
+      setMsg('G\u00FCncellendi')
       router.replace('/admin/posts')
     } catch (e: any) {
       setError(e.message || 'Hata')
@@ -108,17 +108,17 @@ export default function EditPostPage() {
   return (
     <form onSubmit={submit} className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Yazıyı Düzenle</h1>
+        <h1 className="text-2xl font-semibold">Yaz\u0131y\u0131 D\u00FCzenle</h1>
         <div className="flex gap-2">
           <button type="submit" disabled={loading} className="px-3 py-1 rounded bg-blue-600 text-white disabled:opacity-50">Kaydet</button>
         </div>
       </div>
-      {loading && <p className="text-sm text-gray-500">Yükleniyor…</p>}
+      {loading && <p className="text-sm text-gray-500">Y\u00FCkleniyor\u2026</p>}
       {(error || msg) && (<p className={error ? 'text-red-500 text-sm' : 'text-green-500 text-sm'}>{error || msg}</p>)}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1">
-          <label className="text-sm">Başlık</label>
+          <label className="text-sm">Ba\u015Fl\u0131k</label>
           <input className="w-full border rounded px-3 py-2 bg-transparent" value={title} onChange={(e) => setTitle(e.target.value)} required />
         </div>
         <div className="space-y-1">
@@ -133,22 +133,22 @@ export default function EditPostPage() {
           </div>
         </div>
         <div className="space-y-1">
-          <label className="text-sm">Etiketler (virgülle)</label>
+          <label className="text-sm">Etiketler (virg\u00FClle)</label>
           <input className="w-full border rounded px-3 py-2 bg-transparent" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="react, dotnet, mongodb" />
         </div>
       </div>
 
       <div className="space-y-1">
-        <label className="text-sm">Özet</label>
+        <label className="text-sm">\u00D6zet</label>
         <textarea className="w-full min-h-[80px] border rounded px-3 py-2 bg-transparent" value={summary} onChange={(e) => setSummary(e.target.value)} />
       </div>
 
       <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <label className="text-sm">İçerik (Rich Text)</label>
+          <label className="text-sm">\u0130\u00E7erik (Rich Text)</label>
           <label className="text-sm inline-flex items-center gap-2">
             <input type="checkbox" checked={published} onChange={(e) => setPublished(e.target.checked)} />
-            Yayınla
+            Yay\u0131nla
           </label>
         </div>
         <MediumEditor value={body} onChange={setBody} minHeight={360} />
@@ -156,3 +156,4 @@ export default function EditPostPage() {
     </form>
   )
 }
+

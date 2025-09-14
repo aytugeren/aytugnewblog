@@ -76,7 +76,21 @@ body {
 .prose blockquote{ color: var(--muted-foreground); border-left-color: var(--border); }
 .prose hr{ border-color: var(--border); }
 .prose code{ background: color-mix(in oklab, var(--muted) 60%, transparent); color: var(--foreground); border-radius: .25rem; padding: .1rem .25rem; }
-.prose pre{ background: var(--muted); color: var(--foreground); border: 1px solid var(--border); }
+/* Base code block styling with softer corners */
+.prose pre{
+  background: var(--muted);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: .75rem; /* softer corners */
+  padding: 1rem; /* a bit more breathing room */
+  margin-block: 1rem; /* space around code blocks */
+  overflow: auto;
+}
+.prose pre code{
+  display: block;
+  background: transparent !important;
+  color: inherit;
+}
 .prose table th,.prose table td{ border-color: var(--border); }
 /* Theme sunrise overlay */
 .theme-transition-overlay { position: fixed; inset: 0; z-index: 9999; pointer-events: none; overflow: hidden; }
@@ -119,3 +133,29 @@ body {
 }
 /* Prevent sticky header overlap when scrolling to anchors */
 section[id] { scroll-margin-top: 6rem; }
+/* RichTextEditor dark background adjustments */
+.rte .prose { color: #f9fafb; }
+.rte .prose pre { background: #0f172a; color: #e5e7eb; border-color: #374151; }
+.rte .prose code { background: #0f172a; color: #e5e7eb; }
+
+/* Blog/FE code blocks: darker background and strong contrast */
+:root :not(.dark) .prose pre,
+:root :not(.dark) .prose pre code,
+:root :not(.dark) .hljs {
+  background: #111827 !important; /* dark slate for light theme too */
+  color: #f3f4f6 !important;      /* light text */
+  border-color: #1f2937 !important;
+}
+.dark .prose pre,
+.dark .prose pre code,
+.dark .hljs {
+  background: #0b1020 !important; /* deeper, richer dark */
+  color: #e6edf3 !important;      /* refined light text */
+  border-color: #1b2440 !important;
+}
+
+/* Prevent double backgrounds inside highlighted code */
+.prose pre code.hljs { background: transparent !important; }
+
+/* Subtle elevation for code blocks */
+.prose pre { box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 8px 24px rgba(0,0,0,0.25); }

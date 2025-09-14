@@ -109,6 +109,8 @@ export default function NewPostPage() {
         </div>
       </div>
 
+      
+
       <div className="space-y-1">
         <label className="text-sm">Özet</label>
         <textarea className="w-full min-h-[80px] border rounded px-3 py-2 bg-transparent" value={summary} onChange={(e) => setSummary(e.target.value)} />

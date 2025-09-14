@@ -1,5 +1,7 @@
-﻿import type { Metadata } from "next";
+import 'highlight.js/styles/stackoverflow-dark.css';
+import type { Metadata } from "next";
 import "./globals.css";
+import "prismjs/themes/prism.css";
 import { ThemeProvider } from "next-themes";
 import { VisitTracker } from "@/components/visit-tracker";
 import { ProjectIframeModal } from "@/components/project-iframe-modal";

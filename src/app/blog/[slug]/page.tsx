@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { SiteNavbar } from "../../components/site-navbar";
 
@@ -88,8 +88,8 @@ export default async function PostPage(
           {p.body ? (
             <div dangerouslySetInnerHTML={{ __html: p.body }} />
           ) : (
-            <p className="text-muted-foreground">Bu yazı API üzerinden yüklendi. İçerik mevcut değil.</p>
-          )}
+            <p className="text-muted-foreground">Bu yazÄ± API Ã¼zerinden yÃ¼klendi. Ä°Ã§erik mevcut deÄŸil.</p>
+          )}
         </article>
       </>
     );
@@ -99,3 +99,5 @@ export default async function PostPage(
 }
 
 // No static params; routes resolve via API only
+
+
