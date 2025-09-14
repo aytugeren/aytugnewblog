@@ -286,6 +286,16 @@ export default function AdminHomeFormPage() {
             value={data.HeroEmblem || ''}
             onChange={(e) => setData((d) => ({ ...d, HeroEmblem: e.target.value }))}
           />
+          {!!(data.HeroEmblem && data.HeroEmblem.trim()) && (
+            <div className="mt-2 flex items-center gap-3">
+              <img
+                src={data.HeroEmblem}
+                alt="Hero Emblem"
+                className="h-16 w-auto rounded border bg-white object-contain p-1"
+              />
+              <span className="text-xs text-gray-500 break-all">{data.HeroEmblem}</span>
+            </div>
+          )}
         </div>
       </section>
 
