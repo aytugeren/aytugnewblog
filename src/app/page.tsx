@@ -98,9 +98,7 @@ export default async function HomePage() {
             <section className="mx-auto max-w-6xl px-4 py-24 sm:py-32">
               <div className="grid items-center gap-12 md:grid-cols-2">
                 <div>
-                  <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
                     <TrueFocus text={String(heroTitle)} />
-                  </h1>
                   <p className="mt-6 max-w-prose text-lg leading-relaxed text-muted-foreground">{heroSubtitle}</p>
                   <div className="mt-8 flex flex-wrap gap-3">
                     <Link href="#contact" className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">İletişim</Link>
